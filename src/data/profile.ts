@@ -10,7 +10,7 @@ export const profile = {
   name: 'Nicolas Wolf',
   initials: 'NW',
   /** Foto: coloque o arquivo em public/images/ e informe o caminho, ex.: 'images/nicolas.webp' */
-  photo: '',
+  photo: 'images/nicolas-wolf.webp',
   role: { pt: 'Fundador da Wolf Solutions', en: 'Founder of Wolf Solutions' } as L,
   org: { pt: 'IA aplicada a processos de negócio', en: 'Applied AI for business processes' } as L,
   location: { pt: 'Três Lagoas – MS, Brasil', en: 'Três Lagoas, MS – Brazil' } as L,

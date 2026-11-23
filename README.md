@@ -1,137 +1,113 @@
-# Wolf Solutions — site
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/wolf-solutions-logo-dark.svg">
+    <img src="public/brand/wolf-solutions-logo.svg" alt="Wolf Solutions" width="380">
+  </picture>
+</p>
 
-Site da **Wolf Solutions** (IA aplicada a processos de negócio): visual de vidro claro e escuro, português e inglês, soluções por ramo, diagnóstico interativo para empresários que **salva no banco de dados**, painel privado de leads e blog.
+<p align="center">
+  <strong>IA aplicada a processos de negócio.</strong><br>
+  Site institucional com diagnóstico interativo para empresários, soluções por ramo e captação de contatos.
+</p>
 
-- **Site:** React 19 + Vite + TypeScript + Tailwind CSS 4 + Motion
-- **Servidor:** Python (FastAPI) + banco SQLite
-- **No ar:** Docker (roda 24h em qualquer Linux, ex.: uma VM no Proxmox)
+<p align="center">
+  <a href="https://github.com/Flowzinnn/portfolio/actions/workflows/ci.yml"><img src="https://github.com/Flowzinnn/portfolio/actions/workflows/ci.yml/badge.svg" alt="Verificação"></a>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19">
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4">
+  <img src="https://img.shields.io/badge/FastAPI-Python_3.12-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker">
+</p>
 
-## Como funciona
+---
+
+## Sobre o projeto
+
+A **Wolf Solutions** desenvolve agentes de IA e automações sob medida para empresas. Este repositório contém o site da marca — pensado para transformar visitantes em conversas qualificadas:
+
+1. O empresário encontra a solução para o **seu ramo** (clínicas, comércio, indústria, restaurantes, escritórios, imobiliárias).
+2. Faz um **diagnóstico gratuito** de 10 perguntas e recebe, na hora, uma recomendação personalizada com relatório em PDF.
+3. Se quiser, deixa o contato ali mesmo — e o lead chega organizado, já com o contexto do diagnóstico.
+
+## Destaques
+
+| | |
+| --- | --- |
+| **Interface** | Visual em vidro fosco (*glassmorphism*) com temas claro e escuro, animações suaves e rolagem fluida — respeitando quem pede menos movimento no sistema. |
+| **Bilíngue** | Português e inglês em todo o site, com troca instantânea. |
+| **Diagnóstico de IA** | 10 perguntas (incluindo múltipla escolha), pontuação de potencial, recomendação por ramo, relatório para salvar em PDF e captura de lead com consentimento. |
+| **Soluções por ramo** | 6 páginas dedicadas com dores, casos de uso e ganhos de cada setor — boas para busca orgânica. |
+| **Perguntas frequentes** | Acordeão acessível com dados estruturados (*schema.org*) para aparecer melhor no Google. |
+| **Gestão de leads** | Painel administrativo com indicadores, funil por status e exportação para planilha. |
+| **Conteúdo editável** | Textos, ramos, perguntas e ferramentas ficam em arquivos de dados — nada de mexer em componentes para atualizar o site. |
+| **Qualidade** | TypeScript estrito, testes automatizados da API e verificação contínua do build e da imagem Docker a cada envio. |
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    V([Visitante]) -->|HTTPS| S[Servidor FastAPI]
+    S --> W[Site React compilado]
+    S --> A[API REST]
+    A --> D[(SQLite)]
+```
+
+Um único contêiner entrega o site estático e a API. O banco SQLite fica em um volume persistente — simples de manter, de fazer backup e mais do que suficiente para o volume de um site institucional.
+
+## Tecnologias
+
+| Camada | Ferramentas |
+| --- | --- |
+| Interface | React 19, TypeScript, Vite, Tailwind CSS 4, Motion, Lenis, Lucide |
+| Conteúdo | Arquivos de dados em TypeScript, blog em Markdown |
+| Servidor | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic |
+| Dados | SQLite |
+| Entrega | Docker, Docker Compose, GitHub Actions |
+
+## Estrutura
 
 ```
-Visitante ──► túnel Cloudflare (HTTPS) ──► contêiner "wolf-solutions" (porta 8080)
-                                              ├─ entrega o site (pasta dist/)
-                                              ├─ /api/quiz      salva cada diagnóstico (anônimo)
-                                              ├─ /api/contact   salva cada contato (lead)
-                                              └─ /api/admin/*   painel /admin, protegido por senha
-                                                     │
-                                                     └─ banco SQLite no volume "dados"
+├── src/
+│   ├── components/   # peças reutilizáveis: cartões de vidro, navegação, logotipo
+│   ├── sections/     # seções da página inicial
+│   ├── pages/        # páginas: início, ramos, blog
+│   ├── data/         # conteúdo: serviços, ramos, diagnóstico, FAQ, ferramentas
+│   ├── i18n/         # textos em português e inglês
+│   └── content/blog/ # artigos em Markdown
+├── backend/
+│   ├── app/          # API, modelos do banco e validação
+│   └── tests/        # testes automatizados
+├── Dockerfile
+└── docker-compose.yml
 ```
 
-## Rodar no computador
+## Decisões de design
 
-Precisa de Node 24 e Python 3.12.
+- **Conteúdo separado do código.** Todo texto vive em `src/data` e `src/i18n`: adicionar um ramo novo é copiar um bloco — ele ganha página própria e entra no diagnóstico automaticamente.
+- **Vidro que não "pisca".** Os cartões animam a própria opacidade em vez de herdá-la de um elemento pai, para o desfoque de fundo não falhar durante a animação.
+- **Leve por padrão.** Fontes servidas pelo próprio site, bibliotecas separadas em arquivos que o navegador guarda em cache, nada de 3D pesado.
+- **Acessível.** Foco visível, navegação por teclado, rótulos para leitores de tela, contraste verificado nos dois temas e animações reduzidas quando o sistema pede.
+- **Privacidade desde o início.** O diagnóstico é registrado de forma anônima; nome e contato só são guardados quando a pessoa preenche o formulário e autoriza.
+
+## Rodar localmente
+
+Requisitos: Node 24 e Python 3.12.
 
 ```bash
+# site
 npm install
-python -m venv .venv
-.venv/Scripts/pip install -r backend/requirements-dev.txt    # Linux/Mac: .venv/bin/pip
-```
-
-Em dois terminais:
-
-```bash
-# 1) servidor (API + banco). Senha do painel só para testes locais:
-ADMIN_PASSWORD=teste .venv/Scripts/python -m uvicorn backend.app.main:create_app --factory --reload --port 8000
-
-# 2) site com recarregamento automático
 npm run dev
+
+# servidor (em outro terminal)
+python -m venv .venv
+.venv/Scripts/pip install -r backend/requirements-dev.txt     # Linux/Mac: .venv/bin/pip
+.venv/Scripts/python -m uvicorn backend.app.main:create_app --factory --reload --port 8000
 ```
 
-Abra http://localhost:5173 — o painel fica em http://localhost:5173/admin.
-Textos marcados como **rascunho** (etiqueta amarela) só aparecem aqui, nunca no site publicado.
+O site abre em http://localhost:5173. Testes da API: `.venv/Scripts/python -m pytest backend/tests`
 
-Testes da API: `.venv/Scripts/python -m pytest backend/tests`
+## Autor
 
-> **Windows:** se a pasta do projeto tiver um caminho muito longo, o Python pode dar erro de "nome do arquivo muito grande". Crie o `.venv` num caminho curto (ex.: `C:\venvs\wolf`).
+Desenvolvido por **Nicolas Wolf**, fundador da Wolf Solutions — [LinkedIn](https://www.linkedin.com/in/nicolas-wolf-3687961ba).
 
-## Onde mudar cada coisa
-
-| Quero mudar…                                   | Arquivo                               |
-| ---------------------------------------------- | ------------------------------------- |
-| Nome da marca e slogan                         | `src/config/brand.ts`                 |
-| E-mail, LinkedIn, WhatsApp                     | `src/config/site.ts`                  |
-| Textos fixos (títulos, botões, menus)          | `src/i18n/pt.ts` e `src/i18n/en.ts`   |
-| Soluções oferecidas                            | `src/data/services.ts`                |
-| **Ramos** (clínicas, comércio… e suas páginas) | `src/data/segments.ts`                |
-| Perguntas e regras do diagnóstico              | `src/data/quiz.ts`                    |
-| Perguntas frequentes                           | `src/data/faq.ts`                     |
-| Ferramentas por camada                         | `src/data/tools.ts`                   |
-| Foto, “sobre mim”, trajetória                  | `src/data/profile.ts`                 |
-| Cores dos temas claro e escuro                 | topo de `src/index.css`               |
-| Logotipo                                       | `src/components/Logo.tsx` e `public/` |
-| Ordem das seções da página inicial             | `src/pages/Home.tsx`                  |
-
-**Foto:** salve em `public/images/` (quadrada, 800×800 ou maior) e preencha `photo: 'images/nome.webp'` em `profile.ts`.
-
-**Novo ramo:** copie um bloco em `segments.ts`. Ele ganha página própria em `/ia-para/<slug>` e entra sozinho no diagnóstico.
-
-**Artigo no blog:** crie `src/content/blog/pt/<nome>.md` (e a versão em inglês com o mesmo nome em `en/`):
-
-```md
----
-title: Título do artigo
-description: Uma frase que resume o artigo.
-date: 2026-12-01
-tags: IA, Negócios
----
-
-Texto em Markdown…
-```
-
-## Colocar no ar 24h (Proxmox)
-
-1. Crie uma **VM com Debian 12 ou Ubuntu 24.04** (2 GB de RAM e 10 GB de disco sobram).
-   Se preferir um contêiner LXC, ative *Options → Features → nesting* para o Docker funcionar.
-2. Instale o Docker: `curl -fsSL https://get.docker.com | sh`
-3. Baixe o projeto e configure:
-   ```bash
-   git clone https://github.com/Flowzinnn/portfolio.git wolf-solutions
-   cd wolf-solutions
-   cp .env.example .env
-   nano .env        # defina ADMIN_PASSWORD
-   docker compose up -d --build
-   ```
-4. Teste na rede local: `http://IP-DA-VM:8080`. O contêiner volta sozinho se a máquina reiniciar.
-
-**Atualizar depois de mudanças:** `git pull && docker compose up -d --build`
-
-## Publicar na internet sem IP público
-
-Os dois jeitos abaixo funcionam **sem IP público, sem abrir porta no roteador e até atrás de CGNAT**: a própria máquina abre uma conexão de saída.
-
-### Opção A — Cloudflare Tunnel (recomendado, com domínio próprio)
-
-1. Registre um domínio (ex.: `wolfsolutions.com.br` no registro.br) e adicione-o a uma conta grátis da Cloudflare (ela indica os DNS para trocar no registro.br).
-2. Na Cloudflare: **Zero Trust → Networks → Tunnels → Create a tunnel** (tipo *Cloudflared*). Copie o token.
-3. Em *Public hostname*, aponte seu domínio para o serviço `http://app:8080`.
-4. Cole o token em `CLOUDFLARE_TUNNEL_TOKEN` no `.env` e rode:
-   ```bash
-   docker compose --profile tunnel up -d --build
-   ```
-
-### Opção B — Tailscale Funnel (grátis, sem domínio)
-
-Instale o Tailscale na VM, ative o Funnel no painel do Tailscale e rode `tailscale funnel 8080`. O site fica num endereço `https://<maquina>.<rede>.ts.net`.
-
-## Painel de leads
-
-Acesse `/admin` e entre com o `ADMIN_PASSWORD`. Você vê os números, cada contato (com status *novo / em contato / fechado / descartado*), cada diagnóstico e exporta tudo para Excel (CSV).
-
-**Aviso de novo lead no celular:** crie um fluxo no n8n com um gatilho *Webhook* e coloque a URL em `LEAD_WEBHOOK_URL`. A cada contato o servidor chama esse webhook — dali você manda para WhatsApp, Telegram ou e-mail.
-
-## Backup do banco
-
-```bash
-docker compose exec app python -m backend.app.backup     # guarda os 14 mais recentes em /data/backups
-docker compose cp app:/data/backups ./backups            # copia para fora do contêiner
-```
-
-Para automatizar, agende no `crontab -e` da VM:
-`0 3 * * * cd /root/wolf-solutions && docker compose exec -T app python -m backend.app.backup`
-
-## Privacidade (LGPD)
-
-- O diagnóstico é salvo **sem nome, contato ou IP**.
-- Nome e contato só são gravados quando a pessoa preenche o formulário e marca a autorização.
-- Para apagar os dados de alguém a pedido, remova o registro no banco (`/data/portfolio.db`).
+© 2026 Wolf Solutions. Código disponível para consulta; marca, logotipo e textos são de uso exclusivo da Wolf Solutions.
