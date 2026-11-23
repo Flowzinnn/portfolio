@@ -3,8 +3,9 @@ import { brand } from '../config/brand'
 import { cn } from '../lib/utils'
 
 /**
- * Símbolo da Wolf Solutions: cabeça de lobo geométrica em forma de escudo (estratégia + segurança),
- * com os olhos formando um "W" vazado (visão + inicial da marca). As cores seguem o tema do site.
+ * Símbolo da Wolf Solutions: cabeça de lobo geométrica em forma de escudo (estratégia + segurança).
+ * Os olhos e o focinho são nós de um grafo: dois ramos que se unem, como um "merge" do Git
+ * (código + conexão). As cores seguem o tema do site.
  */
 export function LogoMark({ className }: { className?: string }) {
   const id = useId().replace(/:/g, '')
@@ -17,14 +18,18 @@ export function LogoMark({ className }: { className?: string }) {
         </linearGradient>
         <mask id={`m${id}`}>
           <rect width="64" height="64" fill="#fff" />
-          <polyline
-            points="20,28.5 26,34.5 32,29.5 38,34.5 44,28.5"
+          {/* grafo vazado: olhos (nós) → ramos que se unem → focinho (nó) */}
+          <path
+            d="M22 30 L32 40 L42 30 M32 40 L32 49"
             fill="none"
             stroke="#000"
-            strokeWidth="3.6"
-            strokeLinejoin="miter"
-            strokeLinecap="square"
+            strokeWidth="2.6"
+            strokeLinejoin="round"
+            strokeLinecap="round"
           />
+          <circle cx="22" cy="30" r="3.8" fill="#000" />
+          <circle cx="42" cy="30" r="3.8" fill="#000" />
+          <circle cx="32" cy="50" r="3.6" fill="#000" />
         </mask>
       </defs>
       <polygon points="16,4 32,17 48,4 54,26 32,60 10,26" fill={`url(#g${id})`} mask={`url(#m${id})`} />

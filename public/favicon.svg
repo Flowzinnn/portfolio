@@ -6,7 +6,7 @@
     </linearGradient>
     <mask id="m">
       <rect width="64" height="64" fill="#fff" />
-      <polyline points="20,28.5 26,34.5 32,29.5 38,34.5 44,28.5" fill="none" stroke="#000" stroke-width="3.6" stroke-linejoin="miter" stroke-linecap="square" />
+      <path d="M22 30 L32 40 L42 30 M32 40 L32 49" fill="none" stroke="#000" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" /><circle cx="22" cy="30" r="3.8" fill="#000" /><circle cx="42" cy="30" r="3.8" fill="#000" /><circle cx="32" cy="50" r="3.6" fill="#000" />
     </mask>
   </defs>
   <polygon points="16,4 32,17 48,4 54,26 32,60 10,26" fill="url(#g)" mask="url(#m)" />
