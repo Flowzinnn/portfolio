@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <title>Nicolas Wolf — Soluções de IA com segurança, qualidade e economia</title>
+    <meta
+      name="description"
+      content="Nicolas Wolf cria agentes de IA e automações para empresas com Python, n8n e Claude — com segurança, qualidade e economia."
+    />
+    <meta name="theme-color" content="#f6f5fb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nicolas Wolf — Soluções de IA para empresas" />
+    <meta
+      property="og:description"
+      content="IA que resolve, sem complicar o seu negócio. Faça o diagnóstico gratuito em 2 minutos."
+    />
+    <meta property="og:url" content="https://flowzinnn.github.io/portfolio/" />
+    <script>
+      // Aplica o tema salvo antes da página aparecer (evita "piscar" claro → escuro)
+      ;(function () {
+        try {
+          if (localStorage.getItem('nw-theme') === 'dark') document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
