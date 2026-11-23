@@ -159,6 +159,8 @@ export const en: Copy = {
     title: "Hi, I'm Nicolas Wolf.",
     traitsTitle: 'What working with me is like',
     timelineTitle: 'Journey',
+    certificationsTitle: 'Certifications',
+    credential: 'View credential',
     photoAlt: 'Nicolas Wolf, founder of Wolf Solutions',
   },
 

@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react'
+import { ArrowUpRight, Award, MapPin } from 'lucide-react'
 import { GlassCard } from '../components/GlassCard'
 import { Reveal } from '../components/Reveal'
 import { DraftBadge, Section, SectionHeading } from '../components/Section'
@@ -95,6 +95,38 @@ export function About() {
               </li>
             ))}
           </ol>
+
+          {profile.certifications.length > 0 && (
+            <>
+              <h3 className="mt-14 text-xs font-semibold tracking-[0.16em] text-muted uppercase">{a.certificationsTitle}</h3>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {profile.certifications.map((cert, i) => (
+                  <GlassCard key={cert.name.pt} delay={i * 0.06} className="flex items-start gap-4 p-5">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-accent to-accent-2 text-accent-fg">
+                      <Award className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold tracking-tight">{t(cert.name)}</p>
+                      <p className="mt-0.5 text-sm text-muted">
+                        {[t(cert.area), cert.issuer, cert.year].filter(Boolean).join(' · ')}
+                      </p>
+                      {cert.url && (
+                        <a
+                          href={cert.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline"
+                        >
+                          {a.credential}
+                          <ArrowUpRight className="size-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </GlassCard>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </div>
     </Section>

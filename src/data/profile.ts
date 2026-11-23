@@ -5,6 +5,7 @@ import type { L } from '../lib/types'
 
 type Trait = { icon: IconName; title: L; text: L }
 type TimelineItem = { period: L; title: L; org: L; text: L; draft?: boolean }
+type Certification = { name: L; area: L; issuer?: string; year?: string; url?: string }
 
 export const profile = {
   name: 'Nicolas Wolf',
@@ -85,16 +86,6 @@ export const profile = {
       },
     },
     {
-      period: { pt: 'Certificação', en: 'Certification' },
-      title: { pt: 'Python e APIs', en: 'Python and APIs' },
-      org: { pt: 'Certificado', en: 'Certificate' },
-      text: {
-        pt: 'Desenvolvimento em Python e integração com APIs.',
-        en: 'Python development and API integration.',
-      },
-      draft: true, // TODO: nome da instituição que emitiu o certificado
-    },
-    {
       period: { pt: '2019 – 2022', en: '2019 – 2022' },
       title: { pt: 'Técnico em Informática', en: 'IT Technician' },
       org: { pt: 'IFMS — curso técnico integrado ao ensino médio', en: 'IFMS — technical high school program' },
@@ -104,4 +95,15 @@ export const profile = {
       },
     },
   ] as TimelineItem[],
+
+  /**
+   * Certificações. Para adicionar uma, copie uma linha. Campos opcionais:
+   * `issuer` (quem emitiu), `year` (ano) e `url` (link da credencial — vira o botão "Ver credencial").
+   */
+  certifications: [
+    {
+      name: { pt: 'Python e APIs', en: 'Python and APIs' },
+      area: { pt: 'Desenvolvimento', en: 'Development' },
+    },
+  ] as Certification[],
 }

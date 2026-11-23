@@ -12,7 +12,17 @@ export function ThemeToggle() {
   const label = isDark ? ui.theme.toLight : ui.theme.toDark
 
   return (
-    <button type="button" onClick={toggle} aria-label={label} title={label} className="icon-btn overflow-hidden">
+    <button
+      type="button"
+      onClick={(e) => {
+        // o círculo do novo tema nasce no centro do botão (funciona também pelo teclado)
+        const r = e.currentTarget.getBoundingClientRect()
+        toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+      }}
+      aria-label={label}
+      title={label}
+      className="icon-btn overflow-hidden"
+    >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={theme}
