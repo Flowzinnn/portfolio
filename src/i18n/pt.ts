@@ -31,7 +31,7 @@ export const pt = {
     titleB: 'Sem complicar',
     titleC: 'o seu negócio.',
     subtitle:
-      'Sou Nicolas Wolf. Crio agentes de IA e automações com Python, n8n e Claude — com a base de quem trabalha há mais de 3 anos com infraestrutura, redes e servidores. Soluções seguras, bem testadas e que se pagam.',
+      'Sou Nicolas Wolf. Desenvolvo agentes de IA e automações sob medida para empresas, com a base de quem trabalha há mais de 3 anos com infraestrutura, redes e servidores. Soluções seguras, bem testadas e que se pagam.',
     ctaPrimary: 'Fazer diagnóstico gratuito',
     ctaHint: '2 min',
     ctaSecondary: 'Ver cases',
@@ -146,10 +146,10 @@ export const pt = {
   },
 
   tools: {
-    eyebrow: 'Ferramentas',
-    title: 'Tecnologia escolhida a dedo, não por moda.',
+    eyebrow: 'Como as soluções são construídas',
+    title: 'Cada camada com a ferramenta certa.',
     subtitle:
-      'Uso o que resolve o seu problema com mais segurança e menor custo — e essa lista cresce junto com o mercado.',
+      'Você não precisa decorar nenhum desses nomes. O que importa é o que cada camada faz pelo seu negócio — e eu escolho a ferramenta pelo problema, não pela moda.',
   },
 
   blog: {

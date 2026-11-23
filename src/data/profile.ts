@@ -11,14 +11,14 @@ export const profile = {
   initials: 'NW',
   /** Foto: coloque o arquivo em public/images/ e informe o caminho, ex.: 'images/nicolas.webp' */
   photo: '',
-  role: { pt: 'Agentes de IA e automação', en: 'AI agents & automation' } as L,
-  org: { pt: 'Python · n8n · Claude · Docker', en: 'Python · n8n · Claude · Docker' } as L,
+  role: { pt: 'Desenvolvedor de soluções em IA', en: 'AI Solutions Developer' } as L,
+  org: { pt: 'IA aplicada a processos de negócio', en: 'Applied AI for business processes' } as L,
   location: { pt: 'Três Lagoas – MS, Brasil', en: 'Três Lagoas, MS – Brazil' } as L,
 
   about: [
     {
-      pt: 'Sou Nicolas Wolf, de Três Lagoas (MS). Crio agentes de inteligência artificial e automações que tiram o trabalho repetitivo das costas das empresas — com Python, n8n, Claude e Docker.',
-      en: "I'm Nicolas Wolf, from Três Lagoas, Brazil. I build AI agents and automations that take repetitive work off companies' plates — with Python, n8n, Claude and Docker.",
+      pt: 'Sou Nicolas Wolf, de Três Lagoas (MS). Trabalho com IA aplicada a processos de negócio: agentes que atendem clientes e analisam documentos, automações que eliminam tarefas repetitivas e integrações que fazem os sistemas da sua empresa conversarem entre si.',
+      en: "I'm Nicolas Wolf, from Três Lagoas, Brazil. I work with applied AI for business processes: agents that serve customers and review documents, automations that remove repetitive work, and integrations that get your company's systems talking to each other.",
     },
     {
       pt: 'Antes da IA veio a infraestrutura: há mais de 3 anos trabalho com redes, servidores Linux e suporte técnico. É daí que vem meu cuidado com o que realmente importa — sistema que não pode parar, dado que não pode vazar e orçamento que precisa render.',
@@ -71,8 +71,8 @@ export const profile = {
       title: { pt: 'Soluções de IA e automação', en: 'AI and automation solutions' },
       org: { pt: 'Projetos independentes', en: 'Independent projects' },
       text: {
-        pt: 'Agentes de IA, automações com n8n e APIs em Python, com deploy em Docker.',
-        en: 'AI agents, n8n automations and Python APIs, deployed with Docker.',
+        pt: 'Agentes de IA, automação de processos e integrações entre sistemas, do protótipo ao servidor.',
+        en: 'AI agents, process automation and system integrations, from prototype to server.',
       },
     },
     {

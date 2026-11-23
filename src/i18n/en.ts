@@ -31,7 +31,7 @@ export const en: Copy = {
     titleB: 'Without complicating',
     titleC: 'your business.',
     subtitle:
-      "I'm Nicolas Wolf. I build AI agents and automations with Python, n8n and Claude — backed by over 3 years working with infrastructure, networks and servers. Solutions that are secure, well tested and pay for themselves.",
+      "I'm Nicolas Wolf. I build custom AI agents and automations for businesses, backed by over 3 years of hands-on work with infrastructure, networks and servers. Solutions that are secure, well tested and pay for themselves.",
     ctaPrimary: 'Take the free assessment',
     ctaHint: '2 min',
     ctaSecondary: 'See cases',
@@ -141,9 +141,10 @@ export const en: Copy = {
   },
 
   tools: {
-    eyebrow: 'Tools',
-    title: 'Technology chosen with care, not by hype.',
-    subtitle: 'I use whatever solves your problem with the most security and the lowest cost — and this list grows with the market.',
+    eyebrow: 'How the solutions are built',
+    title: 'The right tool for every layer.',
+    subtitle:
+      "You don't need to memorize any of these names. What matters is what each layer does for your business — and I pick tools by the problem, not by hype.",
   },
 
   blog: {

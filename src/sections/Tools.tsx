@@ -22,7 +22,8 @@ export function Tools() {
                 </span>
                 <h3 className="text-lg font-semibold tracking-tight">{t(group.title)}</h3>
               </div>
-              <ul className="mt-6 flex flex-wrap gap-2">
+              <p className="mt-4 text-[15px] leading-relaxed text-muted">{t(group.description)}</p>
+              <ul className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
                 {group.tools.map((tool) => (
                   <li key={t(tool)} className="chip-lg">
                     {t(tool)}

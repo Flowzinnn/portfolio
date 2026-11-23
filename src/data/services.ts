@@ -58,7 +58,7 @@ export const services: Service[] = [
       en: 'Networks, servers, accounts and access organized and protected. The foundation that lets any AI run without risk.',
     },
     bullets: [
-      { pt: 'Servidores Linux e Docker', en: 'Linux servers and Docker' },
+      { pt: 'Servidores Linux e ambientes em contêiner', en: 'Linux servers and containerized environments' },
       { pt: 'Backup e políticas de segurança', en: 'Backups and security policies' },
       { pt: 'Controle de acessos documentado', en: 'Documented access control' },
     ],
