@@ -10,7 +10,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* basename com barra final: o link da home vira "/portfolio/#secao", não "/portfolio#secao" (que dá 404) */}
+    {/* basename com barra final: se o site um dia rodar numa subpasta, o link da home continua "/pasta/#secao" */}
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <App />
     </BrowserRouter>

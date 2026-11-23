@@ -31,7 +31,7 @@ function parseFrontmatter(raw: string) {
   return { data, body: match[2] }
 }
 
-/** Links internos como "/#diagnostico" passam a respeitar o endereço do site (/portfolio/). */
+/** Links internos como "/#diagnostico" respeitam a base do site (vite.config.ts → base). */
 const withBase = (html: string) => html.replace(/href="\/(?!\/)/g, `href="${import.meta.env.BASE_URL}`)
 
 const posts: Post[] = Object.entries(files)
