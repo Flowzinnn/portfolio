@@ -4,3 +4,10 @@ dist
 .DS_Store
 .vite
 .claude
+
+# Servidor
+.env
+data/
+__pycache__/
+.pytest_cache/
+.venv/

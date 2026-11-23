@@ -1,0 +1,11 @@
+node_modules
+dist
+data
+.git
+.github
+.claude
+.env
+**/__pycache__
+**/.pytest_cache
+**/.venv
+backend/tests

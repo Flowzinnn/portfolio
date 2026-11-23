@@ -9,9 +9,10 @@ import { cn, ease } from '../lib/utils'
 import { Logo } from './Logo'
 import { LangToggle, ThemeToggle } from './Toggles'
 
-const HOME_SECTIONS = ['inicio', 'solucoes', 'metodo', 'diagnostico', 'cases', 'sobre', 'ferramentas', 'blog', 'contato']
+const HOME_SECTIONS = ['inicio', 'solucoes', 'ramos', 'metodo', 'diagnostico', 'sobre', 'ferramentas', 'faq', 'blog', 'contato']
 
-type Item = { id: string; label: string; route?: string }
+/** `activeOn`: também fica aceso nas páginas que começam com esse caminho. */
+type Item = { id: string; label: string; activeOn?: string }
 
 export function Navbar() {
   const { ui } = useI18n()
@@ -33,20 +34,19 @@ export function Navbar() {
 
   const items: Item[] = [
     { id: 'solucoes', label: ui.nav.solutions },
+    { id: 'ramos', label: ui.nav.segments, activeOn: '/ia-para/' },
     { id: 'diagnostico', label: ui.nav.quiz },
-    { id: 'cases', label: ui.nav.cases },
     { id: 'sobre', label: ui.nav.about },
-    { id: 'blog', label: ui.nav.blog, route: '/blog' },
+    { id: 'faq', label: ui.nav.faq },
   ]
 
   const isActive = (item: Item) =>
-    Boolean(item.route && pathname.startsWith(item.route)) || (isHome && active === item.id)
+    Boolean(item.activeOn && pathname.startsWith(item.activeOn)) || (isHome && active === item.id)
 
-  const linkTo = (item: Item) => item.route ?? { pathname: '/', hash: `#${item.id}` }
+  const linkTo = (item: Item) => ({ pathname: '/', hash: `#${item.id}` })
 
   const onItemClick = (item: Item) => (e: MouseEvent) => {
     setOpen(false)
-    if (item.route) return
     e.preventDefault()
     go(item.id)
   }
@@ -85,7 +85,6 @@ export function Navbar() {
           className="flex items-center gap-2.5 rounded-full pr-2"
         >
           <Logo />
-          <span className="text-[15px] font-semibold tracking-tight">Nicolas Wolf</span>
         </Link>
 
         <ul className="hidden items-center gap-0.5 lg:flex">

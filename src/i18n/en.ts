@@ -3,38 +3,39 @@ import type { Copy } from './pt'
 
 export const en: Copy = {
   meta: {
-    title: 'Nicolas Wolf — AI solutions with security, quality and real savings',
-    blog: 'Blog — Nicolas Wolf',
-    notFound: 'Page not found — Nicolas Wolf',
+    title: 'Wolf Solutions — AI applied to your business',
+    blog: 'Blog — Wolf Solutions',
+    notFound: 'Page not found — Wolf Solutions',
+    segment: (name: string) => `AI for ${name.toLowerCase()} — Wolf Solutions`,
   },
   skip: 'Skip to content',
   nav: {
     solutions: 'Solutions',
+    segments: 'Industries',
     quiz: 'Assessment',
-    cases: 'Cases',
     about: 'About',
-    blog: 'Blog',
-    cta: 'Get in touch',
+    faq: 'FAQ',
+    cta: 'Contact us',
     open: 'Open menu',
     close: 'Close menu',
-    home: 'Nicolas Wolf — home',
+    home: 'Wolf Solutions — home',
     main: 'Main navigation',
   },
   theme: { toLight: 'Switch to light theme', toDark: 'Switch to dark theme' },
   lang: { label: 'Language' },
-  common: { seeCase: 'View case', draft: 'draft', minRead: 'min read' },
-  social: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp', email: 'Email' },
+  common: { draft: 'draft', minRead: 'min read' },
+  social: { linkedin: 'LinkedIn', whatsapp: 'WhatsApp', email: 'Email' },
 
   hero: {
-    badge: 'Available for new projects',
+    badge: 'Now booking new projects',
     titleA: 'AI that delivers.',
     titleB: 'Without complicating',
     titleC: 'your business.',
     subtitle:
-      "I'm Nicolas Wolf. I build custom AI agents and automations for businesses, backed by over 3 years of hands-on work with infrastructure, networks and servers. Solutions that are secure, well tested and pay for themselves.",
+      'Wolf Solutions builds custom AI agents and automations for businesses, backed by over 3 years of hands-on infrastructure and security work with networks and servers. Solutions that are secure, well tested and pay for themselves.',
     ctaPrimary: 'Take the free assessment',
-    ctaHint: '2 min',
-    ctaSecondary: 'See cases',
+    ctaHint: '3 min',
+    ctaSecondary: 'Solutions by industry',
     pillars: [
       { icon: 'shield', title: 'Security', text: 'Your data under control' },
       { icon: 'quality', title: 'Quality', text: 'Tested before going live' },
@@ -59,14 +60,35 @@ export const en: Copy = {
   },
 
   solutions: {
-    eyebrow: 'What I deliver',
+    eyebrow: 'What we deliver',
     title: "AI solutions that work for you — and don't become another problem.",
     subtitle:
       'No technology for its own sake. Every solution starts with a simple question: does it save time, reduce risk or bring in customers?',
   },
 
+  segments: {
+    eyebrow: 'Solutions by industry',
+    title: 'Every business has its own routine. AI adapts to it.',
+    subtitle: 'Concrete examples of what can be automated in your industry — and where to start.',
+    cta: 'See solutions',
+    other: "Don't see your industry? The assessment works for any business.",
+    otherCta: 'Take the assessment',
+  },
+
+  segmentPage: {
+    eyebrow: 'AI for',
+    back: 'All industries',
+    pains: 'What usually slows things down',
+    useCases: 'What AI does for you',
+    gains: 'What changes day to day',
+    ctaTitle: 'Find out where to start in your business',
+    ctaText: 'The free assessment starts with your industry already selected and takes about 3 minutes.',
+    ctaButton: 'Take the assessment',
+    others: 'Other industries',
+  },
+
   method: {
-    eyebrow: 'How I work',
+    eyebrow: 'How we work',
     title: 'Calm, method and visible results.',
     subtitle: "You know what will happen, what you'll invest and what you'll gain — before we start.",
     pillars: [
@@ -83,7 +105,7 @@ export const en: Copy = {
       {
         icon: 'economy',
         title: 'Savings',
-        text: "I start with what pays off fastest — no bloated contracts, no tools you won't use. You see results before investing more.",
+        text: "We start with what pays off fastest — no bloated contracts, no tools you won't use. You see results before investing more.",
       },
     ],
     steps: [
@@ -96,41 +118,40 @@ export const en: Copy = {
 
   quiz: {
     eyebrow: 'Free assessment',
-    title: 'Find out in 2 minutes where AI pays off in your business.',
-    subtitle: 'Six quick questions. At the end you get a clear starting point — no sign-up, no commitment.',
-    bullets: ['The solution that best fits your industry', 'A practical first step', 'How your data stays secure'],
+    title: 'Find out in 3 minutes where AI pays off in your business.',
+    subtitle:
+      'Ten quick questions. At the end you get the right solution for your industry, a first step and a report to save — no commitment.',
+    bullets: ['The solution that best fits your industry', 'A practical example for your business', 'A report you can save as PDF'],
     progress: (n: number, total: number) => `Question ${n} of ${total}`,
     back: 'Back',
-    resultEyebrow: 'Your starting point',
+    next: 'Continue',
+    multiHint: 'You can pick more than one',
+    resultEyebrow: 'Your assessment',
     potential: 'Potential gain',
     levels: { high: 'High', medium: 'Medium', starter: 'Good start' },
     whyTitle: 'Why this solution',
+    segmentTitle: (name: string) => `In practice, for ${name.toLowerCase()}`,
     firstStepTitle: 'First step',
-    careTitle: (pillar: string) => `How I handle ${pillar.toLowerCase()}`,
-    cta: "Let's talk about it",
+    careTitle: (pillar: string) => `How we handle ${pillar.toLowerCase()}`,
+    reportTitle: 'AI assessment',
+    reportDate: 'Generated on',
+    lead: {
+      title: 'Want a proposal for this assessment?',
+      text: "Leave your details and we'll get in touch — no commitment.",
+      name: 'Your name',
+      whatsapp: 'WhatsApp',
+      email: 'Email',
+      needContact: 'Please fill in WhatsApp or email.',
+      consent: 'I allow Wolf Solutions to contact me about this assessment.',
+      submit: 'Contact me',
+      sending: 'Sending…',
+      done: "Got it! We'll be in touch soon.",
+      error: "Couldn't send right now. Please try again or use the contact form.",
+    },
+    save: 'Save report (PDF)',
+    write: "I'd rather write a message",
     restart: 'Start over',
-    privacy: 'Your answers stay in your browser until you decide to contact me.',
-  },
-
-  cases: {
-    eyebrow: 'Cases',
-    title: 'Real problem, solution that works.',
-    subtitle: 'Real projects with AI agents, Machine Learning and APIs — with open source code on GitHub.',
-    nextTitle: 'The next case could be yours.',
-    nextText: 'Take the free assessment and find out where to start in your business.',
-    nextCta: 'Start assessment',
-    back: 'All cases',
-    context: 'Context',
-    challenge: 'Challenge',
-    solution: 'What was done',
-    results: 'Results',
-    stack: 'Technologies',
-    business: 'What about your business?',
-    repo: 'View code on GitHub',
-    next: 'Next case',
-    ctaTitle: 'Want results like this in your business?',
-    ctaText: "Tell me about your situation. In a quick call I'll show you the way — with clarity on timeline, cost and return.",
-    ctaButton: 'Talk to Nicolas',
+    privacy: "Assessment answers are stored without identifying you. Your name and contact are only sent if you fill in the form.",
   },
 
   about: {
@@ -138,13 +159,21 @@ export const en: Copy = {
     title: "Hi, I'm Nicolas Wolf.",
     traitsTitle: 'What working with me is like',
     timelineTitle: 'Journey',
+    photoAlt: 'Nicolas Wolf, founder of Wolf Solutions',
   },
 
   tools: {
     eyebrow: 'How the solutions are built',
     title: 'The right tool for every layer.',
     subtitle:
-      "You don't need to memorize any of these names. What matters is what each layer does for your business — and I pick tools by the problem, not by hype.",
+      "You don't need to memorize any of these names. What matters is what each layer does for your business — and we pick tools by the problem, not by hype.",
+  },
+
+  faq: {
+    eyebrow: 'FAQ',
+    title: 'Before we start, you might be wondering…',
+    subtitle: "If your question isn't here, just reach out.",
+    more: 'Talk to us',
   },
 
   blog: {
@@ -156,47 +185,39 @@ export const en: Copy = {
     empty: 'New articles coming soon.',
     fallback: "This article isn't available in English yet.",
     ctaTitle: 'Want to apply this to your business?',
-    ctaText: 'Take the free assessment and get a starting point in 2 minutes.',
+    ctaText: 'Take the free assessment and get a starting point in 3 minutes.',
     ctaButton: 'Take the assessment',
   },
 
   contact: {
     eyebrow: 'Contact',
     title: "Let's talk about your business?",
-    subtitle: "Tell me what's eating up your time. I'll answer clearly: what can be done, what it costs and what you gain.",
+    subtitle: "Tell us what's eating up your time. We'll answer clearly: what can be done, what it costs and what you gain.",
     promises: ['A first conversation at no cost, no strings attached', 'A clear proposal, no fine print', 'Your data handled confidentially'],
-    channels: 'Or reach me directly',
+    channels: 'Or reach us directly',
     form: {
       name: 'Your name',
       email: 'Your email',
+      whatsapp: 'WhatsApp',
       company: 'Company (optional)',
-      message: 'How can I help?',
+      message: 'How can we help?',
       placeholder: 'E.g.: we spend too much time answering customers on WhatsApp…',
+      needContact: 'Please fill in email or WhatsApp so we can reply.',
+      consent: 'I allow Wolf Solutions to contact me.',
       submit: 'Send message',
-      submitLinkedin: 'Copy and send via LinkedIn',
       sending: 'Sending…',
-      error: "I couldn't send it right now. Please try again or use one of the other channels.",
-      notConfigured:
-        'Only you see this note: without web3formsKey in src/config/site.ts, the form does not reach your email (for now it sends via LinkedIn).',
+      error: "Couldn't send right now. Please try again or reach us through the other channels.",
       privacy: 'Your data is only used to reply to you.',
-      subject: (name: string) => `New portfolio contact — ${name}`,
     },
     success: {
       title: 'Message sent!',
-      text: "Thanks for reaching out. I'll read it carefully and get back to you soon.",
+      text: "Thanks for reaching out. We'll read it carefully and get back to you soon.",
       again: 'Send another message',
-    },
-    copied: {
-      title: 'Message copied!',
-      text: 'I opened my LinkedIn in a new tab. Just click “Message”, paste (Ctrl+V) and send.',
-      open: 'Open LinkedIn again',
     },
   },
 
   footer: {
     rights: 'All rights reserved.',
-    built: 'Built with React, Vite and Motion.',
-    source: 'Source on GitHub',
     top: 'Top',
   },
 

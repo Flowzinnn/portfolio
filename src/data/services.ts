@@ -68,8 +68,8 @@ export const services: Service[] = [
     icon: 'compass',
     title: { pt: 'Diagnóstico e consultoria', en: 'Assessment and consulting' },
     text: {
-      pt: 'Mapeio seus processos e mostro onde a IA gera retorno de verdade — e onde não vale o investimento.',
-      en: "I map your processes and show you where AI truly pays off — and where it isn't worth the investment.",
+      pt: 'Mapeamos seus processos e mostramos onde a IA gera retorno de verdade — e onde não vale o investimento.',
+      en: "We map your processes and show you where AI truly pays off — and where it isn't worth the investment.",
     },
     bullets: [
       { pt: 'Plano com prioridades e custos', en: 'A plan with priorities and costs' },

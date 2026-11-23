@@ -4,7 +4,11 @@
       <stop offset="0" stop-color="#7c3aed" />
       <stop offset="1" stop-color="#c026d3" />
     </linearGradient>
+    <mask id="m">
+      <rect width="64" height="64" fill="#fff" />
+      <polyline points="20,28.5 26,34.5 32,29.5 38,34.5 44,28.5" fill="none" stroke="#000" stroke-width="3.6" stroke-linejoin="miter" stroke-linecap="square" />
+    </mask>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#g)" />
-  <text x="32" y="41" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#fff">NW</text>
+  <polygon points="16,4 32,17 48,4 54,26 32,60 10,26" fill="url(#g)" mask="url(#m)" />
+  <polygon points="32,17 48,4 54,26 32,60" fill="#fff" fill-opacity=".16" mask="url(#m)" />
 </svg>

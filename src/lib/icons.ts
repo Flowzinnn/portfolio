@@ -3,7 +3,13 @@
 import {
   BadgeCheck,
   Bot,
+  BriefcaseBusiness,
   Building2,
+  Factory,
+  House,
+  Stethoscope,
+  Store,
+  UtensilsCrossed,
   CloudSun,
   CodeXml,
   Compass,
@@ -46,6 +52,12 @@ export const icons = {
   building: Building2,
   code: CodeXml,
   weather: CloudSun,
+  health: Stethoscope,
+  store: Store,
+  factory: Factory,
+  food: UtensilsCrossed,
+  briefcase: BriefcaseBusiness,
+  home: House,
 }
 
 export type IconName = keyof typeof icons

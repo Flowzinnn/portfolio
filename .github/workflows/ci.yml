@@ -1,0 +1,40 @@
+# A cada push: confere se o site compila e se os testes da API passam.
+name: Verificação
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r backend/requirements-dev.txt
+      - run: python -m pytest backend/tests -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Monta a imagem e confere se o servidor sobe
+        run: |
+          docker build -t wolf-solutions .
+          docker run -d --name ws -p 8080:8080 -e ADMIN_PASSWORD=ci wolf-solutions
+          for i in $(seq 1 20); do curl -fsS http://localhost:8080/api/health && break; sleep 1; done
+          curl -fsS http://localhost:8080/ | grep -q "Wolf Solutions"
+          curl -fsS http://localhost:8080/ia-para/clinicas | grep -q "<div id=\"root\">"

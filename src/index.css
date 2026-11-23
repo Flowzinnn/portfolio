@@ -358,6 +358,46 @@
   --tw-prose-td-borders: var(--line);
 }
 
+/* Relatório do diagnóstico em PDF (botão "Salvar relatório"): imprime só o resultado */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  :root,
+  .dark {
+    --bg: #ffffff;
+    --fg: #15131f;
+    --fg-soft: #3b3849;
+    --muted: #5d5a70;
+    --line: rgb(21 19 31 / 0.12);
+    --accent: #7c3aed;
+    --accent-2: #c026d3;
+    --accent-fg: #ffffff;
+    --accent-soft: rgb(124 58 237 / 0.08);
+    --field-bg: #ffffff;
+  }
+  html,
+  body {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #relatorio,
+  #relatorio * {
+    visibility: visible;
+  }
+  #relatorio {
+    position: absolute;
+    inset: 0 0 auto 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .blob {
     animation: none !important;

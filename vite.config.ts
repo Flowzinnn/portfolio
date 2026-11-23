@@ -2,11 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// O site é publicado em https://flowzinnn.github.io/portfolio/
-// Se um dia usar domínio próprio (ex.: nicolaswolf.com.br), troque `base` para '/'.
 export default defineConfig({
-  base: '/portfolio/',
   plugins: [react(), tailwindcss()],
+  server: {
+    // Em desenvolvimento, as chamadas /api vão para o servidor Python (porta 8000).
+    proxy: { '/api': 'http://127.0.0.1:8000' },
+  },
   build: {
     rollupOptions: {
       output: {

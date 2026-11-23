@@ -2,11 +2,12 @@ import { useDocumentTitle } from '../lib/hooks'
 import { useI18n } from '../lib/i18n'
 import { About } from '../sections/About'
 import { BlogPreview } from '../sections/BlogPreview'
-import { Cases } from '../sections/Cases'
 import { Contact } from '../sections/Contact'
+import { Faq } from '../sections/Faq'
 import { Hero } from '../sections/Hero'
 import { Method } from '../sections/Method'
 import { Quiz } from '../sections/Quiz'
+import { Segments } from '../sections/Segments'
 import { Solutions } from '../sections/Solutions'
 import { Tools } from '../sections/Tools'
 
@@ -19,11 +20,12 @@ export default function Home() {
     <>
       <Hero />
       <Solutions />
+      <Segments />
       <Method />
       <Quiz />
-      <Cases />
       <About />
       <Tools />
+      <Faq />
       <BlogPreview />
       <Contact />
     </>

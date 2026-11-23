@@ -1,0 +1,27 @@
+# Subir:            docker compose up -d --build
+# Subir com túnel:  docker compose --profile tunnel up -d --build   (publica na internet sem IP público)
+services:
+  app:
+    build: .
+    container_name: wolf-solutions
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - dados:/data
+
+  # Túnel da Cloudflare: a máquina abre uma conexão de SAÍDA até a Cloudflare,
+  # que entrega o site com HTTPS. Não precisa de IP público nem abrir porta no roteador.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app
+    profiles: ["tunnel"]
+
+volumes:
+  dados:

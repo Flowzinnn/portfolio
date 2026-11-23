@@ -1,21 +1,18 @@
-import { useEffect, useState, useSyncExternalStore, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, CircleCheck, LoaderCircle, Send } from 'lucide-react'
 import { GlassCard } from '../components/GlassCard'
 import { Reveal } from '../components/Reveal'
 import { Section, SectionHeading } from '../components/Section'
 import { SocialLinks, useChannels } from '../components/SocialLinks'
-import { site } from '../config/site'
-import { contactDraft } from '../lib/contactDraft'
+import { api } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { contactDraft } from '../lib/stores'
 import { ease } from '../lib/utils'
 
-type Status = 'idle' | 'sending' | 'success' | 'copied' | 'error'
-const EMPTY = { name: '', email: '', company: '', message: '', website: '' }
-
-// Como o formulário entrega a mensagem, conforme o que estiver configurado em src/config/site.ts:
-// Web3Forms (chega no seu e-mail) → app de e-mail do visitante → copiar e abrir seu LinkedIn.
-const MODE = site.web3formsKey ? 'web3forms' : site.email ? 'mailto' : site.linkedin ? 'linkedin' : null
+type Status = 'idle' | 'sending' | 'success' | 'error' | 'invalid'
+type TextField = 'name' | 'email' | 'whatsapp' | 'company' | 'message' | 'website'
+const EMPTY = { name: '', email: '', whatsapp: '', company: '', message: '', website: '', consent: false }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -32,65 +29,41 @@ export function Contact() {
   const channels = useChannels()
   const draft = useSyncExternalStore(contactDraft.subscribe, contactDraft.get, contactDraft.get)
   const [form, setForm] = useState(EMPTY)
+  const [quizId, setQuizId] = useState<number>()
   const [status, setStatus] = useState<Status>('idle')
-  const canSend = MODE !== null
 
-  // Quando o visitante termina o quiz, a mensagem já chega escrita aqui.
+  // Quem terminou o diagnóstico chega aqui com a mensagem já escrita.
   useEffect(() => {
     if (!draft) return
-    setForm((f) => ({ ...f, message: draft }))
+    setForm((f) => ({ ...f, message: draft.message }))
+    setQuizId(draft.quizId)
     setStatus('idle')
   }, [draft])
 
-  const update = (key: keyof typeof EMPTY) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }))
+  const update = (key: TextField) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (form.website) return setStatus('success') // armadilha para robôs
-
-    const body = `${form.message}\n\n— ${form.name}${form.company ? ` (${form.company})` : ''}\n${form.email}`
-
-    if (MODE === 'linkedin') {
-      try {
-        await navigator.clipboard.writeText(body)
-      } catch {
-        /* sem permissão de área de transferência: o painel explica o que fazer */
-      }
-      window.open(site.linkedin, '_blank', 'noopener,noreferrer')
-      setStatus('copied')
-      return
-    }
-
-    if (MODE === 'web3forms') {
-      setStatus('sending')
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: site.web3formsKey,
-            subject: c.form.subject(form.name),
-            from_name: 'Portfólio Nicolas Wolf',
-            name: form.name,
-            email: form.email,
-            company: form.company,
-            message: form.message,
-          }),
-        })
-        const data = (await res.json()) as { success?: boolean }
-        if (!data.success) throw new Error('falha no envio')
-        setStatus('success')
-        setForm(EMPTY)
-        contactDraft.set('')
-      } catch {
-        setStatus('error')
-      }
-      return
-    }
-
-    if (MODE === 'mailto') {
-      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(c.form.subject(form.name))}&body=${encodeURIComponent(body)}`
+    if (!form.email.trim() && !form.whatsapp.trim()) return setStatus('invalid')
+    setStatus('sending')
+    try {
+      await api.sendContact({
+        name: form.name,
+        email: form.email || undefined,
+        whatsapp: form.whatsapp || undefined,
+        company: form.company || undefined,
+        message: form.message,
+        consent: form.consent,
+        source: quizId ? 'quiz' : 'form',
+        quiz_id: quizId,
+        website: form.website,
+      })
+      setStatus('success')
+      setForm(EMPTY)
+      setQuizId(undefined)
+      contactDraft.set(null)
+    } catch {
+      setStatus('error')
     }
   }
 
@@ -121,36 +94,25 @@ export function Contact() {
 
         <GlassCard strong interactive={false} className="rounded-[2rem] p-6 sm:p-8">
           <AnimatePresence mode="wait" initial={false}>
-            {status === 'success' || status === 'copied' ? (
+            {status === 'success' ? (
               <motion.div
                 key="ok"
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ duration: 0.4, ease }}
-                className="grid min-h-[26rem] place-items-center text-center"
+                className="grid min-h-[28rem] place-items-center text-center"
                 role="status"
               >
                 <div>
                   <span className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                     <CircleCheck className="size-8" />
                   </span>
-                  <h3 className="mt-6 text-2xl font-semibold tracking-tight">
-                    {status === 'copied' ? c.copied.title : c.success.title}
-                  </h3>
-                  <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-muted">
-                    {status === 'copied' ? c.copied.text : c.success.text}
-                  </p>
-                  <div className="mt-8 flex flex-wrap justify-center gap-3">
-                    {status === 'copied' && (
-                      <a href={site.linkedin} target="_blank" rel="noreferrer" className="btn btn-primary h-11 px-5 text-sm">
-                        {c.copied.open}
-                      </a>
-                    )}
-                    <button type="button" onClick={() => setStatus('idle')} className="btn btn-glass h-11 px-5 text-sm">
-                      {c.success.again}
-                    </button>
-                  </div>
+                  <h3 className="mt-6 text-2xl font-semibold tracking-tight">{c.success.title}</h3>
+                  <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-muted">{c.success.text}</p>
+                  <button type="button" onClick={() => setStatus('idle')} className="btn btn-glass mt-8 h-11 px-5 text-sm">
+                    {c.success.again}
+                  </button>
                 </div>
               </motion.div>
             ) : (
@@ -165,26 +127,29 @@ export function Contact() {
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={c.form.name}>
-                    <input required autoComplete="name" value={form.name} onChange={update('name')} className="field" />
+                    <input required minLength={2} autoComplete="name" value={form.name} onChange={update('name')} className="field" />
                   </Field>
                   <Field label={c.form.email}>
+                    <input type="email" autoComplete="email" value={form.email} onChange={update('email')} className="field" />
+                  </Field>
+                  <Field label={c.form.whatsapp}>
                     <input
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={form.email}
-                      onChange={update('email')}
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={form.whatsapp}
+                      onChange={update('whatsapp')}
                       className="field"
                     />
                   </Field>
+                  <Field label={c.form.company}>
+                    <input autoComplete="organization" value={form.company} onChange={update('company')} className="field" />
+                  </Field>
                 </div>
-                <Field label={c.form.company}>
-                  <input autoComplete="organization" value={form.company} onChange={update('company')} className="field" />
-                </Field>
                 <Field label={c.form.message}>
                   <textarea
                     required
-                    rows={7}
+                    rows={6}
                     value={form.message}
                     onChange={update('message')}
                     placeholder={c.form.placeholder}
@@ -200,9 +165,19 @@ export function Contact() {
                   onChange={update('website')}
                   className="hidden"
                 />
+                <label className="flex items-start gap-2.5 text-sm leading-snug text-fg-soft">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={form.consent}
+                    onChange={(e) => setForm((f) => ({ ...f, consent: e.target.checked }))}
+                    className="mt-0.5 size-4 shrink-0 accent-accent"
+                  />
+                  {c.form.consent}
+                </label>
                 <button
                   type="submit"
-                  disabled={!canSend || status === 'sending'}
+                  disabled={status === 'sending'}
                   className="btn btn-primary mt-1 h-12 w-full disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === 'sending' ? (
@@ -212,19 +187,19 @@ export function Contact() {
                     </>
                   ) : (
                     <>
-                      {MODE === 'linkedin' ? c.form.submitLinkedin : c.form.submit}
+                      {c.form.submit}
                       <Send className="size-4" />
                     </>
                   )}
                 </button>
+                {status === 'invalid' && (
+                  <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">
+                    {c.form.needContact}
+                  </p>
+                )}
                 {status === 'error' && (
                   <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">
                     {c.form.error}
-                  </p>
-                )}
-                {import.meta.env.DEV && MODE !== 'web3forms' && (
-                  <p className="rounded-xl bg-amber-300/30 px-3 py-2 text-xs text-amber-900 dark:text-amber-200">
-                    {c.form.notConfigured}
                   </p>
                 )}
                 <p className="text-xs text-muted">{c.form.privacy}</p>

@@ -11,7 +11,7 @@ export const profile = {
   initials: 'NW',
   /** Foto: coloque o arquivo em public/images/ e informe o caminho, ex.: 'images/nicolas.webp' */
   photo: '',
-  role: { pt: 'Desenvolvedor de soluções em IA', en: 'AI Solutions Developer' } as L,
+  role: { pt: 'Fundador da Wolf Solutions', en: 'Founder of Wolf Solutions' } as L,
   org: { pt: 'IA aplicada a processos de negócio', en: 'Applied AI for business processes' } as L,
   location: { pt: 'Três Lagoas – MS, Brasil', en: 'Três Lagoas, MS – Brazil' } as L,
 
@@ -68,8 +68,8 @@ export const profile = {
   timeline: [
     {
       period: { pt: 'Hoje', en: 'Today' },
-      title: { pt: 'Soluções de IA e automação', en: 'AI and automation solutions' },
-      org: { pt: 'Projetos independentes', en: 'Independent projects' },
+      title: { pt: 'Fundador da Wolf Solutions', en: 'Founder of Wolf Solutions' },
+      org: { pt: 'IA aplicada a processos de negócio', en: 'Applied AI for business processes' },
       text: {
         pt: 'Agentes de IA, automação de processos e integrações entre sistemas, do protótipo ao servidor.',
         en: 'AI agents, process automation and system integrations, from prototype to server.',

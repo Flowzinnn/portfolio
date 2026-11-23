@@ -1,14 +1,16 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, ArrowRight, Check, RotateCcw } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Download, LoaderCircle, MessageSquareText, RotateCcw } from 'lucide-react'
 import { GlassCard } from '../components/GlassCard'
+import { Logo } from '../components/Logo'
 import { Reveal } from '../components/Reveal'
 import { Eyebrow, Section, SectionHeading } from '../components/Section'
 import { buildResult, quizQuestions, type Answers, type Potential } from '../data/quiz'
-import { contactDraft } from '../lib/contactDraft'
+import { api } from '../lib/api'
 import { useSectionNav } from '../lib/hooks'
 import { useI18n } from '../lib/i18n'
 import { icons } from '../lib/icons'
+import { contactDraft, quizPrefill } from '../lib/stores'
 import { cn, ease } from '../lib/utils'
 
 const slide = {
@@ -18,6 +20,7 @@ const slide = {
 }
 
 const LEVEL_BARS: Record<Potential, number> = { starter: 1, medium: 2, high: 3 }
+const asList = (value: unknown) => (Array.isArray(value) ? (value as string[]) : [])
 
 export function Quiz() {
   const { ui, lang, t } = useI18n()
@@ -27,22 +30,61 @@ export function Quiz() {
   const [step, setStep] = useState(0)
   const [dir, setDir] = useState(1)
   const [answers, setAnswers] = useState<Answers>({})
+  const [quizId, setQuizId] = useState<number>()
+  const [attempt, setAttempt] = useState(0)
   const busy = useRef(false)
+  const savedFor = useRef<Answers | null>(null)
 
   const total = quizQuestions.length
   const done = step >= total
   const question = quizQuestions[Math.min(step, total - 1)]
   const result = useMemo(() => (done ? buildResult(answers, lang) : null), [done, answers, lang])
 
-  function choose(optionId: string) {
-    if (busy.current) return
-    busy.current = true
-    setAnswers((prev) => ({ ...prev, [question.id]: optionId }))
+  // Vindo de uma página "IA para…": o ramo já chega respondido.
+  const prefill = useSyncExternalStore(quizPrefill.subscribe, quizPrefill.get, quizPrefill.get)
+  useEffect(() => {
+    if (!prefill) return
+    savedFor.current = null
+    setQuizId(undefined)
+    setAnswers({ sector: prefill })
+    setDir(1)
+    setStep(1)
+    quizPrefill.set(null)
+  }, [prefill])
+
+  // Guarda o diagnóstico (sem identificar a pessoa) assim que termina.
+  useEffect(() => {
+    if (!done || !result || savedFor.current === answers) return
+    savedFor.current = answers
+    api
+      .saveQuiz({ lang, answers, solution: result.solution.id, potential: result.potential })
+      .then((res) => setQuizId(res.id))
+      .catch(() => {
+        /* sem servidor o site continua funcionando; só não grava */
+      })
+  }, [done, result, answers, lang])
+
+  function advance(delay = 0) {
     setDir(1)
     window.setTimeout(() => {
       setStep((s) => s + 1)
       busy.current = false
-    }, 260)
+    }, delay)
+  }
+
+  function choose(optionId: string) {
+    if (busy.current) return
+    busy.current = true
+    setAnswers((prev) => ({ ...prev, [question.id]: optionId }))
+    advance(260)
+  }
+
+  function toggle(optionId: string) {
+    setAnswers((prev) => {
+      const current = asList(prev[question.id])
+      const next = current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]
+      return { ...prev, [question.id]: next }
+    })
   }
 
   function back() {
@@ -52,18 +94,22 @@ export function Quiz() {
   }
 
   function restart() {
+    savedFor.current = null
+    setQuizId(undefined)
+    setAttempt((n) => n + 1)
     setDir(-1)
     setAnswers({})
     setStep(0)
   }
 
-  function talk() {
+  function writeMessage() {
     if (!result) return
-    contactDraft.set(result.summary)
+    contactDraft.set({ message: result.summary, quizId })
     go('contato')
   }
 
   const SolutionIcon = result ? icons[result.solution.icon] : null
+  const selectedMulti = asList(answers[question.id])
 
   return (
     <Section id="diagnostico">
@@ -110,7 +156,7 @@ export function Quiz() {
             </div>
           )}
 
-          <div className={cn(!done && 'min-h-[23rem]')}>
+          <div className={cn(!done && 'min-h-[25rem]')}>
             <AnimatePresence mode="wait" custom={dir} initial={false}>
               {!done ? (
                 <motion.fieldset
@@ -123,14 +169,15 @@ export function Quiz() {
                   transition={{ duration: 0.35, ease }}
                 >
                   <legend className="text-2xl font-semibold tracking-tight text-balance">{t(question.title)}</legend>
+                  {question.multi && <p className="mt-2 text-sm text-muted">{q.multiHint}</p>}
                   <div className="mt-6 grid gap-2.5">
                     {question.options.map((o) => {
-                      const selected = answers[question.id] === o.id
+                      const selected = question.multi ? selectedMulti.includes(o.id) : answers[question.id] === o.id
                       return (
                         <button
                           key={o.id}
                           type="button"
-                          onClick={() => choose(o.id)}
+                          onClick={() => (question.multi ? toggle(o.id) : choose(o.id))}
                           aria-pressed={selected}
                           className={cn(
                             'group flex w-full items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 text-left text-[15px] font-medium transition-[border-color,background-color,color] duration-300',
@@ -142,7 +189,8 @@ export function Quiz() {
                           <span>{t(o.label)}</span>
                           <span
                             className={cn(
-                              'grid size-6 shrink-0 place-items-center rounded-full border transition-[border-color,background-color,color] duration-300',
+                              'grid size-6 shrink-0 place-items-center border transition-[border-color,background-color,color] duration-300',
+                              question.multi ? 'rounded-md' : 'rounded-full',
                               selected
                                 ? 'border-accent bg-accent text-accent-fg'
                                 : 'border-line text-transparent group-hover:border-accent/60',
@@ -154,6 +202,17 @@ export function Quiz() {
                       )
                     })}
                   </div>
+                  {question.multi && (
+                    <button
+                      type="button"
+                      onClick={() => advance()}
+                      disabled={selectedMulti.length === 0}
+                      className="btn btn-primary mt-5 h-11 px-6 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {q.next}
+                      <ArrowRight className="size-4" />
+                    </button>
+                  )}
                 </motion.fieldset>
               ) : (
                 result &&
@@ -168,75 +227,100 @@ export function Quiz() {
                     transition={{ duration: 0.4, ease }}
                     aria-live="polite"
                   >
-                    <Eyebrow>{q.resultEyebrow}</Eyebrow>
-
-                    <div className="mt-5 flex items-start gap-4">
-                      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-linear-to-br from-accent to-accent-2 text-accent-fg shadow-[0_12px_30px_-12px_var(--accent-glow)]">
-                        <SolutionIcon className="size-6" />
-                      </span>
-                      <div>
-                        <h3 className="text-2xl font-semibold tracking-tight">{t(result.solution.title)}</h3>
-                        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{t(result.solution.text)}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-[var(--field-bg)] px-4 py-3">
-                      <span className="text-sm font-medium text-fg-soft">{q.potential}</span>
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-1">
-                          {[1, 2, 3].map((n) => (
-                            <motion.span
-                              key={n}
-                              initial={{ scaleX: 0 }}
-                              animate={{ scaleX: 1 }}
-                              transition={{ delay: 0.3 + n * 0.12, duration: 0.5, ease }}
-                              className={cn(
-                                'h-2 w-7 origin-left rounded-full',
-                                n <= LEVEL_BARS[result.potential] ? 'bg-linear-to-r from-accent to-accent-2' : 'bg-line',
-                              )}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm font-semibold text-accent">{q.levels[result.potential]}</span>
-                      </div>
-                    </div>
-
-                    <h4 className="mt-7 text-sm font-semibold">{q.whyTitle}</h4>
-                    <ul className="mt-3 space-y-2.5">
-                      {result.why.map((w) => (
-                        <li key={w} className="flex gap-2.5 text-[15px] leading-relaxed text-fg-soft">
-                          <Check className="mt-1 size-4 shrink-0 text-accent" />
-                          {w}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-line bg-[var(--field-bg)] p-4">
-                        <p className="text-xs font-semibold tracking-wider text-accent uppercase">{q.firstStepTitle}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-fg-soft">{result.firstStep}</p>
-                      </div>
-                      <div className="rounded-2xl border border-line bg-[var(--field-bg)] p-4">
-                        <p className="text-xs font-semibold tracking-wider text-accent uppercase">
-                          {q.careTitle(result.care.title)}
+                    <div id="relatorio">
+                      {/* Cabeçalho que só aparece no PDF/impressão */}
+                      <div className="mb-6 hidden items-center justify-between border-b border-line pb-4 print:flex">
+                        <Logo />
+                        <p className="text-sm text-muted">
+                          {q.reportTitle} · {q.reportDate}{' '}
+                          {new Intl.DateTimeFormat(lang === 'pt' ? 'pt-BR' : 'en-US', { dateStyle: 'long' }).format(new Date())}
                         </p>
-                        <p className="mt-2 text-sm leading-relaxed text-fg-soft">{result.care.text}</p>
                       </div>
+
+                      <Eyebrow>{q.resultEyebrow}</Eyebrow>
+
+                      <div className="mt-5 flex items-start gap-4">
+                        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-linear-to-br from-accent to-accent-2 text-accent-fg shadow-[0_12px_30px_-12px_var(--accent-glow)] print:shadow-none">
+                          <SolutionIcon className="size-6" />
+                        </span>
+                        <div>
+                          <h3 className="text-2xl font-semibold tracking-tight">{t(result.solution.title)}</h3>
+                          <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{t(result.solution.text)}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-[var(--field-bg)] px-4 py-3">
+                        <span className="text-sm font-medium text-fg-soft">{q.potential}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex gap-1">
+                            {[1, 2, 3].map((n) => (
+                              <motion.span
+                                key={n}
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{ delay: 0.3 + n * 0.12, duration: 0.5, ease }}
+                                className={cn(
+                                  'h-2 w-7 origin-left rounded-full',
+                                  n <= LEVEL_BARS[result.potential] ? 'bg-linear-to-r from-accent to-accent-2' : 'bg-line',
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-semibold text-accent">{q.levels[result.potential]}</span>
+                        </div>
+                      </div>
+
+                      {result.segment && (
+                        <div className="mt-6 rounded-2xl border border-accent/30 bg-accent-soft p-4">
+                          <p className="text-xs font-semibold tracking-wider text-accent uppercase">
+                            {q.segmentTitle(result.segment.name)}
+                          </p>
+                          <p className="mt-2 font-semibold">{result.segment.useCase.title}</p>
+                          <p className="mt-1 text-sm leading-relaxed text-fg-soft">{result.segment.useCase.text}</p>
+                        </div>
+                      )}
+
+                      <h4 className="mt-7 text-sm font-semibold">{q.whyTitle}</h4>
+                      <ul className="mt-3 space-y-2.5">
+                        {result.why.map((w) => (
+                          <li key={w} className="flex gap-2.5 text-[15px] leading-relaxed text-fg-soft">
+                            <Check className="mt-1 size-4 shrink-0 text-accent" />
+                            {w}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-line bg-[var(--field-bg)] p-4">
+                          <p className="text-xs font-semibold tracking-wider text-accent uppercase">{q.firstStepTitle}</p>
+                          <p className="mt-2 text-sm leading-relaxed text-fg-soft">{result.firstStep}</p>
+                        </div>
+                        <div className="rounded-2xl border border-line bg-[var(--field-bg)] p-4">
+                          <p className="text-xs font-semibold tracking-wider text-accent uppercase">{q.careTitle(result.care.title)}</p>
+                          <p className="mt-2 text-sm leading-relaxed text-fg-soft">{result.care.text}</p>
+                        </div>
+                      </div>
+
+                      <p className="mt-6 text-[15px] font-medium">{result.closing}</p>
                     </div>
 
-                    <p className="mt-6 text-[15px] font-medium">{result.closing}</p>
+                    <LeadForm key={attempt} summary={result.summary} quizId={quizId} />
 
-                    <div className="mt-6 flex flex-wrap items-center gap-3">
-                      <button type="button" onClick={talk} className="btn btn-primary h-12 px-6">
-                        {q.cta}
-                        <ArrowRight className="size-4" />
+                    <div className="no-print mt-5 flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={() => window.print()} className="btn btn-glass h-11 px-4 text-sm">
+                        <Download className="size-4" />
+                        {q.save}
                       </button>
-                      <button type="button" onClick={restart} className="btn h-12 px-4 text-muted hover:text-fg">
+                      <button type="button" onClick={writeMessage} className="btn h-11 px-4 text-sm text-fg-soft hover:text-accent">
+                        <MessageSquareText className="size-4" />
+                        {q.write}
+                      </button>
+                      <button type="button" onClick={restart} className="btn h-11 px-4 text-sm text-muted hover:text-fg">
                         <RotateCcw className="size-4" />
                         {q.restart}
                       </button>
                     </div>
-                    <p className="mt-4 text-xs text-muted">{q.privacy}</p>
+                    <p className="no-print mt-4 text-xs leading-relaxed text-muted">{q.privacy}</p>
                   </motion.div>
                 )
               )}
@@ -245,5 +329,123 @@ export function Quiz() {
         </GlassCard>
       </div>
     </Section>
+  )
+}
+
+/** Captura o contato direto no resultado do diagnóstico. */
+function LeadForm({ summary, quizId }: { summary: string; quizId?: number }) {
+  const { ui } = useI18n()
+  const l = ui.quiz.lead
+  const [form, setForm] = useState({ name: '', whatsapp: '', email: '', consent: false, website: '' })
+  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error' | 'invalid'>('idle')
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!form.whatsapp.trim() && !form.email.trim()) return setStatus('invalid')
+    setStatus('sending')
+    try {
+      await api.sendContact({
+        name: form.name,
+        whatsapp: form.whatsapp || undefined,
+        email: form.email || undefined,
+        consent: form.consent,
+        source: 'quiz',
+        quiz_id: quizId,
+        message: summary,
+        website: form.website,
+      })
+      setStatus('done')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  if (status === 'done') {
+    return (
+      <div role="status" className="no-print mt-7 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+        <CircleCheck className="size-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <p className="font-medium">{l.done}</p>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={submit} className="no-print mt-7 rounded-2xl border border-accent/30 bg-accent-soft p-5">
+      <p className="font-semibold tracking-tight">{l.title}</p>
+      <p className="mt-1 text-sm text-muted">{l.text}</p>
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+        <input
+          required
+          minLength={2}
+          autoComplete="name"
+          placeholder={l.name}
+          aria-label={l.name}
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          className="field"
+        />
+        <input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder={l.whatsapp}
+          aria-label={l.whatsapp}
+          value={form.whatsapp}
+          onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))}
+          className="field"
+        />
+        <input
+          type="email"
+          autoComplete="email"
+          placeholder={l.email}
+          aria-label={l.email}
+          value={form.email}
+          onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+          className="field"
+        />
+      </div>
+      <input
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={form.website}
+        onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+        className="hidden"
+      />
+      <label className="mt-3 flex items-start gap-2.5 text-sm leading-snug text-fg-soft">
+        <input
+          type="checkbox"
+          required
+          checked={form.consent}
+          onChange={(e) => setForm((f) => ({ ...f, consent: e.target.checked }))}
+          className="mt-0.5 size-4 shrink-0 accent-accent"
+        />
+        {l.consent}
+      </label>
+      <button type="submit" disabled={status === 'sending'} className="btn btn-primary mt-4 h-11 px-5 text-sm disabled:opacity-60">
+        {status === 'sending' ? (
+          <>
+            <LoaderCircle className="size-4 animate-spin" />
+            {l.sending}
+          </>
+        ) : (
+          <>
+            {l.submit}
+            <ArrowRight className="size-4" />
+          </>
+        )}
+      </button>
+      {status === 'invalid' && (
+        <p role="alert" className="mt-3 text-sm text-rose-600 dark:text-rose-400">
+          {l.needContact}
+        </p>
+      )}
+      {status === 'error' && (
+        <p role="alert" className="mt-3 text-sm text-rose-600 dark:text-rose-400">
+          {l.error}
+        </p>
+      )}
+    </form>
   )
 }

@@ -8,23 +8,25 @@ import { useI18n } from '../lib/i18n'
 import { icons } from '../lib/icons'
 import { asset } from '../lib/utils'
 
+/** Foto em círculo com anel na cor da marca (ou as iniciais, enquanto não houver foto). */
 function Portrait() {
-  if (profile.photo) {
-    return (
-      <img
-        src={asset(profile.photo)}
-        alt={profile.name}
-        width={800}
-        height={1000}
-        decoding="async"
-        className="aspect-[4/5] w-full rounded-[1.5rem] object-cover"
-      />
-    )
-  }
+  const { ui } = useI18n()
   return (
-    <div className="relative isolate grid aspect-[4/5] w-full place-items-center overflow-hidden rounded-[1.5rem] bg-linear-to-br from-accent via-accent-2/80 to-accent/70">
-      <div className="bg-grid absolute inset-0 opacity-50" />
-      <span className="text-7xl font-semibold tracking-tighter text-accent-fg/90">{profile.initials}</span>
+    <div className="mx-auto w-fit rounded-full bg-linear-to-br from-accent to-accent-2 p-1 shadow-[0_24px_60px_-24px_var(--accent-glow)]">
+      {profile.photo ? (
+        <img
+          src={asset(profile.photo)}
+          alt={ui.about.photoAlt}
+          width={480}
+          height={480}
+          decoding="async"
+          className="size-48 rounded-full border-4 border-[var(--bg)] bg-white object-cover sm:size-56"
+        />
+      ) : (
+        <div className="grid size-48 place-items-center rounded-full border-4 border-[var(--bg)] bg-linear-to-br from-accent to-accent-2 sm:size-56">
+          <span className="text-6xl font-semibold tracking-tighter text-accent-fg">{profile.initials}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -37,18 +39,16 @@ export function About() {
     <Section id="sobre">
       <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
         <div className="lg:sticky lg:top-32 lg:self-start">
-          <GlassCard strong interactive={false} className="mx-auto max-w-sm rounded-[2rem] p-4 lg:max-w-none">
+          <GlassCard strong interactive={false} className="mx-auto max-w-sm rounded-[2rem] px-6 pt-8 pb-7 text-center lg:max-w-none">
             <Portrait />
-            <div className="px-2 pt-5 pb-2">
-              <h3 className="text-xl font-semibold tracking-tight">{profile.name}</h3>
-              <p className="mt-1 text-sm font-medium text-fg-soft">{t(profile.role)}</p>
-              <p className="text-sm text-muted">{t(profile.org)}</p>
-              <p className="mt-3 flex items-center gap-1.5 text-sm text-muted">
-                <MapPin className="size-4 text-accent" />
-                {t(profile.location)}
-              </p>
-              <SocialLinks className="mt-5" />
-            </div>
+            <h3 className="mt-6 text-xl font-semibold tracking-tight">{profile.name}</h3>
+            <p className="mt-1 text-sm font-medium text-accent">{t(profile.role)}</p>
+            <p className="mt-0.5 text-sm text-muted">{t(profile.org)}</p>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted">
+              <MapPin className="size-4 text-accent" />
+              {t(profile.location)}
+            </p>
+            <SocialLinks className="mt-5 justify-center" />
           </GlassCard>
         </div>
 

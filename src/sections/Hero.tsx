@@ -60,10 +60,10 @@ export function Hero() {
               <ArrowRight className="size-4" />
             </a>
             <a
-              href="#cases"
+              href="#ramos"
               onClick={(e) => {
                 e.preventDefault()
-                go('cases')
+                go('ramos')
               }}
               className="btn btn-glass h-12 px-6"
             >
