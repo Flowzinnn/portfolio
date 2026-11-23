@@ -46,7 +46,9 @@ export default function Admin() {
     setLoading(true)
     setError('')
     try {
-      const [summary, contacts, quiz] = await Promise.all([api.admin.summary(key), api.admin.contacts(key), api.admin.quiz(key)])
+      // Confere a senha com UMA chamada: senha errada conta como uma tentativa só no limite do servidor.
+      const summary = await api.admin.summary(key)
+      const [contacts, quiz] = await Promise.all([api.admin.contacts(key), api.admin.quiz(key)])
       setData({ summary, contacts, quiz })
       setToken(key)
       try {
