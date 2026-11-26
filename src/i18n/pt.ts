@@ -161,6 +161,7 @@ export const pt = {
     title: 'Prazer, Nicolas Wolf.',
     traitsTitle: 'Como é trabalhar comigo',
     timelineTitle: 'Trajetória',
+    stackTitle: 'Tecnologias',
     certificationsTitle: 'Certificações',
     credential: 'Ver credencial',
     photoAlt: 'Nicolas Wolf, fundador da Wolf Solutions',

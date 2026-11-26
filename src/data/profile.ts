@@ -6,6 +6,7 @@ import type { L } from '../lib/types'
 type Trait = { icon: IconName; title: L; text: L }
 type TimelineItem = { period: L; title: L; org: L; text: L; draft?: boolean }
 type Certification = { name: L; area: L; issuer?: string; year?: string; url?: string }
+type StackCategory = { id: string; icon: IconName; label: L; blurb: L; items: { name: string | L; short: string }[] }
 
 export const profile = {
   name: 'Nicolas Wolf',
@@ -18,16 +19,20 @@ export const profile = {
 
   about: [
     {
-      pt: 'Sou Nicolas Wolf, de Três Lagoas (MS). Trabalho com IA aplicada a processos de negócio: agentes que atendem clientes e analisam documentos, automações que eliminam tarefas repetitivas e integrações que fazem os sistemas da sua empresa conversarem entre si.',
-      en: "I'm Nicolas Wolf, from Três Lagoas, Brazil. I work with applied AI for business processes: agents that serve customers and review documents, automations that remove repetitive work, and integrations that get your company's systems talking to each other.",
+      pt: 'Ajudo empresas a colocar a IA para trabalhar no dia a dia: agentes que atendem clientes e analisam documentos, automações que tiram tarefas repetitivas da mão da equipe e integrações que fazem os sistemas da empresa conversarem entre si.',
+      en: "I help companies put AI to work every day: agents that serve customers and review documents, automations that take repetitive tasks off your team's plate, and integrations that get your company's systems talking to each other.",
     },
     {
-      pt: 'Antes da IA veio a infraestrutura: há mais de 3 anos trabalho com redes, servidores Linux e suporte técnico. É daí que vem meu cuidado com o que realmente importa — sistema que não pode parar, dado que não pode vazar e orçamento que precisa render.',
-      en: 'Before AI came infrastructure: for over 3 years I have worked with networks, Linux servers and technical support. That is where my focus on what really matters comes from — systems that can’t go down, data that can’t leak and budgets that have to stretch.',
+      pt: 'Venho da infraestrutura de TI. Desde 2023 trabalho na Prefeitura de Três Lagoas (MS), primeiro como técnico de informática e hoje como coordenador da área, cuidando de redes, servidores e do suporte que mantém a administração municipal funcionando. É daí que vem o meu cuidado com o que realmente importa: sistema que não pode parar, dado que não pode vazar e orçamento que precisa render.',
+      en: 'I come from IT infrastructure. Since 2023 I have worked for the City of Três Lagoas (MS), first as an IT technician and now as IT coordinator, looking after the networks, servers and support that keep the municipal administration running. That is where my focus on what really matters comes from: systems that can’t go down, data that can’t leak and budgets that have to stretch.',
     },
     {
-      pt: 'Estou concluindo Análise e Desenvolvimento de Sistemas no IFMS e levo essa disciplina para cada projeto: entendo o seu negócio, mostro onde a IA gera retorno e entrego funcionando — com segurança desde o primeiro dia.',
-      en: "I'm finishing a degree in Systems Analysis and Development at IFMS, and I bring that discipline to every project: I learn how your business works, show you where AI pays off and deliver it working — secure from day one.",
+      pt: 'Sou Técnico em Informática pelo IFMS e concluo Análise e Desenvolvimento de Sistemas na mesma instituição em 2026. Trabalho em etapas claras: entendo o seu processo, mostro onde a IA traz retorno e entrego funcionando, com segurança desde o primeiro dia.',
+      en: 'I hold an IT Technician diploma from IFMS and will complete my degree in Systems Analysis and Development there in 2026. I work in clear steps: I learn your process, show you where AI pays off and deliver it working, secure from day one.',
+    },
+    {
+      pt: 'Um exemplo está aqui mesmo: o diagnóstico de IA deste site, o painel de contatos e os avisos automáticos que recebo a cada novo cliente rodam com as mesmas ferramentas que uso nos projetos.',
+      en: 'You can see an example right here: this site’s AI assessment, its contact dashboard and the automatic alerts I get for every new lead run on the same tools I use in client projects.',
     },
   ] as L[],
 
@@ -77,6 +82,24 @@ export const profile = {
       },
     },
     {
+      period: { pt: 'jul/2026 – hoje', en: 'Jul 2026 – present' },
+      title: { pt: 'Coordenador de Informática', en: 'IT Coordinator' },
+      org: { pt: 'Prefeitura Municipal de Três Lagoas – MS', en: 'City of Três Lagoas – MS (municipal government)' },
+      text: {
+        pt: 'Coordeno a área de informática da prefeitura: infraestrutura, redes, servidores e o suporte aos setores da administração municipal.',
+        en: "I coordinate the city's IT department: infrastructure, networks, servers and support for the municipal administration.",
+      },
+    },
+    {
+      period: { pt: 'mar/2023 – jul/2026', en: 'Mar 2023 – Jul 2026' },
+      title: { pt: 'Técnico de Informática', en: 'IT Technician' },
+      org: { pt: 'Prefeitura Municipal de Três Lagoas – MS', en: 'City of Três Lagoas – MS (municipal government)' },
+      text: {
+        pt: 'Suporte técnico, redes e servidores Linux no dia a dia da administração municipal.',
+        en: 'Technical support, networks and Linux servers in the day-to-day of the municipal administration.',
+      },
+    },
+    {
       period: { pt: '2024 – 2026', en: '2024 – 2026' },
       title: { pt: 'Tecnólogo em Análise e Desenvolvimento de Sistemas', en: "Associate degree in Systems Analysis and Development" },
       org: { pt: 'IFMS — Instituto Federal de Mato Grosso do Sul', en: 'IFMS — Federal Institute of Mato Grosso do Sul' },
@@ -101,9 +124,84 @@ export const profile = {
    * `issuer` (quem emitiu), `year` (ano) e `url` (link da credencial — vira o botão "Ver credencial").
    */
   certifications: [
-    {
-      name: { pt: 'Python e APIs', en: 'Python and APIs' },
-      area: { pt: 'Desenvolvimento', en: 'Development' },
-    },
+    // Ex.: { name: { pt: 'AWS Cloud Practitioner', en: 'AWS Cloud Practitioner' }, area: { pt: 'Nuvem', en: 'Cloud' },
+    //        issuer: 'Amazon Web Services', year: '2026', url: 'https://...' },
+    // Só coloque certificados que você tem, com o link da credencial: é o que passa confiança.
   ] as Certification[],
+
+  /**
+   * Tecnologias, por área (menu com abas na seção "Sobre"). `short` é a sigla que aparece na bolha.
+   * Mantenha só o que você usa de verdade: o cliente pode perguntar.
+   */
+  stack: [
+    {
+      id: 'backend',
+      icon: 'server',
+      label: { pt: 'Backend', en: 'Backend' },
+      blurb: { pt: 'APIs e integrações que conectam sistemas e automatizam processos.', en: 'APIs and integrations that connect systems and automate processes.' },
+      items: [
+        { name: 'Python', short: 'Py' },
+        { name: 'FastAPI', short: 'FA' },
+        { name: 'REST APIs', short: 'API' },
+        { name: 'SQLAlchemy', short: 'SA' },
+        { name: 'Pydantic', short: 'Pd' },
+        { name: 'Webhooks', short: 'WH' },
+      ],
+    },
+    {
+      id: 'frontend',
+      icon: 'frontend',
+      label: { pt: 'Frontend', en: 'Frontend' },
+      blurb: { pt: 'Sites, painéis e interfaces rápidas, bonitas e fáceis de usar.', en: 'Fast, good-looking and easy-to-use websites, dashboards and interfaces.' },
+      items: [
+        { name: 'React', short: 'Re' },
+        { name: 'TypeScript', short: 'TS' },
+        { name: 'JavaScript', short: 'JS' },
+        { name: 'Tailwind CSS', short: 'Tw' },
+        { name: 'Vite', short: 'Vi' },
+        { name: 'HTML & CSS', short: '</>' },
+      ],
+    },
+    {
+      id: 'database',
+      icon: 'database',
+      label: { pt: 'Banco de dados', en: 'Databases' },
+      blurb: { pt: 'Dados organizados, seguros e prontos para virar informação.', en: 'Organized, secure data ready to become insight.' },
+      items: [
+        { name: 'PostgreSQL', short: 'PG' },
+        { name: 'MySQL', short: 'My' },
+        { name: 'SQLite', short: 'SL' },
+        { name: 'SQL', short: 'SQL' },
+      ],
+    },
+    {
+      id: 'cloud',
+      icon: 'cloud',
+      label: { pt: 'Nuvem & Infra', en: 'Cloud & Infra' },
+      blurb: { pt: 'Do servidor à nuvem: tudo no ar, monitorado e com backup.', en: 'From server to cloud: always on, monitored and backed up.' },
+      items: [
+        { name: 'AWS', short: 'AWS' },
+        { name: 'Docker', short: 'Dk' },
+        { name: 'Linux', short: 'Lx' },
+        { name: { pt: 'Redes', en: 'Networking' }, short: 'Net' },
+        { name: 'Cloudflare', short: 'CF' },
+        { name: 'Netlify', short: 'Nf' },
+        { name: 'Render', short: 'Rd' },
+        { name: 'Git & GitHub', short: 'Git' },
+      ],
+    },
+    {
+      id: 'ai',
+      icon: 'ai',
+      label: { pt: 'IA & Automação', en: 'AI & Automation' },
+      blurb: { pt: 'Agentes e fluxos automáticos que trabalham pela sua equipe.', en: 'Agents and automated workflows that work for your team.' },
+      items: [
+        { name: { pt: 'Agentes de IA', en: 'AI agents' }, short: 'AI' },
+        { name: { pt: 'APIs de LLM', en: 'LLM APIs' }, short: 'LLM' },
+        { name: 'n8n', short: 'n8n' },
+        { name: 'Machine Learning', short: 'ML' },
+        { name: 'Telegram Bots', short: 'Bot' },
+      ],
+    },
+  ] as StackCategory[],
 }

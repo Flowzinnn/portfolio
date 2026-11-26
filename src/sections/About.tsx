@@ -3,6 +3,7 @@ import { GlassCard } from '../components/GlassCard'
 import { Reveal } from '../components/Reveal'
 import { DraftBadge, Section, SectionHeading } from '../components/Section'
 import { SocialLinks } from '../components/SocialLinks'
+import { TechStack } from '../components/TechStack'
 import { profile } from '../data/profile'
 import { useI18n } from '../lib/i18n'
 import { icons } from '../lib/icons'
@@ -52,7 +53,7 @@ export function About() {
           </GlassCard>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <SectionHeading align="left" eyebrow={a.eyebrow} title={a.title} />
           <Reveal delay={0.1} className="mt-6 space-y-4 text-lg leading-relaxed text-pretty text-fg-soft">
             {profile.about.map((p) => (
@@ -95,6 +96,11 @@ export function About() {
               </li>
             ))}
           </ol>
+
+          <h3 className="mt-14 text-xs font-semibold tracking-[0.16em] text-muted uppercase">{a.stackTitle}</h3>
+          <Reveal delay={0.05} className="mt-4">
+            <TechStack />
+          </Reveal>
 
           {profile.certifications.length > 0 && (
             <>

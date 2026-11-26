@@ -5,6 +5,10 @@ import {
   Bot,
   BriefcaseBusiness,
   Building2,
+  BrainCircuit,
+  Cloud,
+  Database,
+  LayoutTemplate,
   Factory,
   House,
   Stethoscope,
@@ -58,6 +62,10 @@ export const icons = {
   food: UtensilsCrossed,
   briefcase: BriefcaseBusiness,
   home: House,
+  database: Database,
+  cloud: Cloud,
+  frontend: LayoutTemplate,
+  ai: BrainCircuit,
 }
 
 export type IconName = keyof typeof icons
