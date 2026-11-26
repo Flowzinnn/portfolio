@@ -56,9 +56,14 @@ class RateLimiter:
 
 
 def client_ip(request: Request) -> str:
-    """IP real do visitante (atrás do túnel da Cloudflare ele vem no cabeçalho)."""
+    """IP real do visitante (atrás do túnel da Cloudflare ou do proxy do Netlify ele vem no cabeçalho)."""
     forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    return request.headers.get("cf-connecting-ip") or forwarded or (request.client.host if request.client else "?")
+    return (
+        request.headers.get("cf-connecting-ip")
+        or request.headers.get("x-nf-client-connection-ip")
+        or forwarded
+        or (request.client.host if request.client else "?")
+    )
 
 
 def notify_webhook(url: str, payload: dict) -> None:

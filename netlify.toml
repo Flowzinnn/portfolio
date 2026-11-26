@@ -1,0 +1,7 @@
+# Site no Netlify; a API (Python) roda no Render — ver docs/DEPLOY.md
+[build]
+  command = "npm run build && node scripts/netlify-redirects.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"

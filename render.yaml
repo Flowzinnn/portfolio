@@ -1,0 +1,15 @@
+# API no Render (plano grátis). Os dados ficam no Postgres do Neon (DATABASE_URL) — ver docs/DEPLOY.md
+services:
+  - type: web
+    name: wolf-solutions-api
+    runtime: docker
+    plan: free
+    region: virginia
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: LEAD_WEBHOOK_URL
+        sync: false

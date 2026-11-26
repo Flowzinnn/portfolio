@@ -55,7 +55,11 @@ def make_sessionmaker(url: str) -> sessionmaker:
         if path and path != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
 
-    engine = create_engine(url, connect_args={"check_same_thread": False} if is_sqlite else {})
+    if is_sqlite:
+        engine = create_engine(url, connect_args={"check_same_thread": False})
+    else:
+        # Postgres na nuvem (ex.: Neon) desliga conexões paradas: testa antes de usar e recicla de tempos em tempos.
+        engine = create_engine(url, pool_pre_ping=True, pool_recycle=300)
 
     if is_sqlite:
         # WAL: leituras do painel não travam gravações do site.
