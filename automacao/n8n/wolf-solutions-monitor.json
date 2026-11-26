@@ -74,7 +74,7 @@
             {
               "id": "d2ecbed0-4357-4d7f-b105-c3fbefa73132",
               "name": "chatId",
-              "value": "SEU_CHAT_ID",
+              "value": "8550486449",
               "type": "string"
             },
             {
@@ -147,6 +147,12 @@
           },
           "timeout": 90000
         }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wolfSolutionsKey",
+          "name": "wolfSolutionsKey"
+        }
       }
     },
     {
@@ -182,6 +188,12 @@
         "options": {
           "timeout": 90000
         }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wolfSolutionsKey",
+          "name": "wolfSolutionsKey"
+        }
       }
     },
     {
@@ -215,6 +227,12 @@
           "appendAttribution": false,
           "parse_mode": "HTML",
           "disable_web_page_preview": true
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "Telegram account",
+          "name": "Telegram account"
         }
       }
     },
@@ -275,6 +293,12 @@
         "options": {
           "appendAttribution": false,
           "replyTo": "={{ $('Configuração').first().json.emailRemetente }}"
+        }
+      },
+      "credentials": {
+        "smtp": {
+          "id": "SMTP account",
+          "name": "SMTP account"
         }
       }
     },
@@ -426,6 +450,12 @@
           },
           "timeout": 90000
         }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wolfSolutionsKey",
+          "name": "wolfSolutionsKey"
+        }
       }
     },
     {
@@ -459,6 +489,12 @@
         "binaryPropertyName": "data",
         "additionalFields": {
           "caption": "={{ $json.legenda }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "Telegram account",
+          "name": "Telegram account"
         }
       }
     }
@@ -666,5 +702,6 @@
     "saveDataSuccessExecution": "none",
     "saveManualExecutions": true
   },
-  "pinData": {}
+  "pinData": {},
+  "id": "0nmfQ37gMnKxzJyR"
 }

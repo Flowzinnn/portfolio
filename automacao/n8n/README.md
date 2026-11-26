@@ -69,7 +69,7 @@ Abra http://localhost:5678 e crie a conta de dono do n8n (fica só no seu PC).
 2. No nó **Configuração**, troque:
    - `apiUrl` / `siteUrl` → já vêm com `https://wolf-solutions-api.onrender.com` e
      `https://wolfsolutions.netlify.app`
-   - `chatId` → o número do @userinfobot
+   - `chatId` → já vem com o seu (`8550486449`); troque se for usar outra conta do Telegram
    - `emailRemetente` → já vem com `trabalho.nicolaswolf@gmail.com`
 3. Nos nós **Buscar contatos**, **Buscar resumo** e **Baixar planilha**, em *Credential*, crie uma **Header Auth**:
    - Name: `Authorization`
@@ -102,14 +102,27 @@ O Gmail não aceita a sua senha normal em programas. Ele gera uma "senha de app"
 Para testar, envie o formulário do site com um e-mail seu: em até 2 minutos chegam o aviso no
 Telegram e o e-mail de boas-vindas.
 
-## Atualizar para uma versão nova do fluxo
+## Atualizar o fluxo (sem mexer em credenciais)
 
-1. No fluxo antigo, clique em **Published → Unpublish** (senão os dois rodam e você recebe tudo em dobro).
-2. Importe o `wolf-solutions-monitor.json` novo (como no passo 4) e escolha as credenciais que já existem
-   em cada nó — não precisa criar de novo.
-3. Preencha o `chatId` no nó **Configuração** e clique em **Publish**.
-4. Chega de novo o 🐺 *Monitor ligado* (o fluxo novo começa do zero, sem repetir contatos antigos).
-   Depois apague o fluxo antigo.
+O arquivo já aponta para as credenciais pelo nome (`wolfSolutionsKey`, `Telegram account` e
+`SMTP account`) e tem o mesmo id do fluxo que está no seu n8n. Importando pelo terminal, o n8n
+**substitui** o fluxo e liga as credenciais sozinho.
+
+No Windows (PowerShell, na pasta do projeto):
+
+```powershell
+git pull
+powershell -ExecutionPolicy Bypass -File automacao\n8n\atualizar.ps1
+```
+
+No Linux: `git pull && sh automacao/n8n/atualizar.sh`.
+
+Depois abra http://localhost:5678, recarregue a página (F5), abra o fluxo e clique em **Publish**.
+Chega de novo o 🐺 *Monitor ligado* (o fluxo recomeça a contagem sem repetir contatos antigos).
+
+> Se você renomear alguma credencial no n8n, troque o nome também no arquivo, senão ela não é
+> ligada sozinha. Não importe pelo menu *Import from File* dentro de um fluxo aberto: isso cola uma
+> segunda cópia dentro dele e tudo passa a chegar em dobro.
 
 ## Problemas comuns
 
