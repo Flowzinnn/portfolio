@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { profile } from '../data/profile'
 import { useI18n } from '../lib/i18n'
 import { icons } from '../lib/icons'
+import { techLogos } from '../lib/techLogos'
 import { cn } from '../lib/utils'
 import { GlassCard } from './GlassCard'
 
@@ -17,6 +18,37 @@ const bubble = {
   show: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 320, damping: 22 } },
   exit: { opacity: 0, scale: 0.8, y: -8, transition: { duration: 0.15 } },
 } as const
+
+/** Marcas de cor clara (amarelo, ciano, rosa…) ficam sobre fundo escuro para não sumirem no branco. */
+function isLight(hex: string) {
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4
+}
+
+/** Bolinha com o logo oficial (cor da marca) ou, sem logo, um ícone genérico na cor do site. */
+function TechIcon({ logo, icon }: { logo?: keyof typeof techLogos; icon?: keyof typeof icons }) {
+  const brand = logo ? techLogos[logo] : undefined
+  const Generic = icon ? icons[icon] : undefined
+  return (
+    <span
+      className={cn(
+        'grid size-8 shrink-0 place-items-center rounded-full shadow-sm ring-1',
+        brand && isLight(brand.hex) ? 'bg-[#16141f] ring-white/10' : 'bg-white ring-black/5',
+      )}
+    >
+      {brand ? (
+        <svg role="img" viewBox="0 0 24 24" aria-hidden className="size-[18px]" fill={`#${brand.hex}`}>
+          <path d={brand.path} />
+        </svg>
+      ) : Generic ? (
+        <Generic className="size-[18px] text-accent" aria-hidden />
+      ) : null}
+    </span>
+  )
+}
 
 /** Menu de tecnologias: abas por área e uma "nuvem" de bolhas flutuantes com cada tecnologia. */
 export function TechStack() {
@@ -88,9 +120,7 @@ export function TechStack() {
                         whileHover={{ scale: 1.08 }}
                         className="glass inline-flex items-center gap-2.5 rounded-full py-1.5 pr-4 pl-1.5 shadow-[0_12px_30px_-18px_var(--accent-glow)]"
                       >
-                        <span className="grid h-8 min-w-8 place-items-center rounded-full bg-linear-to-br from-accent to-accent-2 px-1.5 text-[11px] font-bold tracking-tight text-accent-fg">
-                          {item.short}
-                        </span>
+                        <TechIcon logo={item.logo} icon={item.icon} />
                         <span className="text-sm font-semibold tracking-tight">{name}</span>
                       </motion.span>
                     </motion.li>

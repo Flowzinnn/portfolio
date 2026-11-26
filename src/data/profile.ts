@@ -1,12 +1,15 @@
 // Seus dados pessoais e trajetória. `draft: true` = texto que ainda precisa ser confirmado
 // (aparece com uma etiqueta "rascunho" só no modo de desenvolvimento).
 import type { IconName } from '../lib/icons'
+import type { TechLogo } from '../lib/techLogos'
 import type { L } from '../lib/types'
 
 type Trait = { icon: IconName; title: L; text: L }
 type TimelineItem = { period: L; title: L; org: L; text: L; draft?: boolean }
 type Certification = { name: L; area: L; issuer?: string; year?: string; url?: string }
-type StackCategory = { id: string; icon: IconName; label: L; blurb: L; items: { name: string | L; short: string }[] }
+type StackCategory = { id: string; icon: IconName; label: L; blurb: L; items: StackItem[] }
+/** `logo` = logo oficial (src/lib/techLogos.ts); `icon` = ícone genérico, para o que não tem logo. */
+type StackItem = { name: string | L; logo?: TechLogo; icon?: IconName }
 
 export const profile = {
   name: 'Nicolas Wolf',
@@ -130,7 +133,8 @@ export const profile = {
   ] as Certification[],
 
   /**
-   * Tecnologias, por área (menu com abas na seção "Sobre"). `short` é a sigla que aparece na bolha.
+   * Tecnologias, por área (menu com abas na seção "Sobre"). Cada bolha mostra o logo oficial (`logo`)
+   * ou, para conceitos sem logo, um ícone genérico (`icon`).
    * Mantenha só o que você usa de verdade: o cliente pode perguntar.
    */
   stack: [
@@ -140,12 +144,12 @@ export const profile = {
       label: { pt: 'Backend', en: 'Backend' },
       blurb: { pt: 'APIs e integrações que conectam sistemas e automatizam processos.', en: 'APIs and integrations that connect systems and automate processes.' },
       items: [
-        { name: 'Python', short: 'Py' },
-        { name: 'FastAPI', short: 'FA' },
-        { name: 'REST APIs', short: 'API' },
-        { name: 'SQLAlchemy', short: 'SA' },
-        { name: 'Pydantic', short: 'Pd' },
-        { name: 'Webhooks', short: 'WH' },
+        { name: 'Python', logo: 'python' },
+        { name: 'FastAPI', logo: 'fastapi' },
+        { name: 'REST APIs', icon: 'plug' },
+        { name: 'SQLAlchemy', logo: 'sqlalchemy' },
+        { name: 'Pydantic', logo: 'pydantic' },
+        { name: 'Webhooks', icon: 'webhook' },
       ],
     },
     {
@@ -154,12 +158,12 @@ export const profile = {
       label: { pt: 'Frontend', en: 'Frontend' },
       blurb: { pt: 'Sites, painéis e interfaces rápidas, bonitas e fáceis de usar.', en: 'Fast, good-looking and easy-to-use websites, dashboards and interfaces.' },
       items: [
-        { name: 'React', short: 'Re' },
-        { name: 'TypeScript', short: 'TS' },
-        { name: 'JavaScript', short: 'JS' },
-        { name: 'Tailwind CSS', short: 'Tw' },
-        { name: 'Vite', short: 'Vi' },
-        { name: 'HTML & CSS', short: '</>' },
+        { name: 'React', logo: 'react' },
+        { name: 'TypeScript', logo: 'typescript' },
+        { name: 'JavaScript', logo: 'javascript' },
+        { name: 'Tailwind CSS', logo: 'tailwind' },
+        { name: 'Vite', logo: 'vite' },
+        { name: 'HTML & CSS', logo: 'html' },
       ],
     },
     {
@@ -168,10 +172,10 @@ export const profile = {
       label: { pt: 'Banco de dados', en: 'Databases' },
       blurb: { pt: 'Dados organizados, seguros e prontos para virar informação.', en: 'Organized, secure data ready to become insight.' },
       items: [
-        { name: 'PostgreSQL', short: 'PG' },
-        { name: 'MySQL', short: 'My' },
-        { name: 'SQLite', short: 'SL' },
-        { name: 'SQL', short: 'SQL' },
+        { name: 'PostgreSQL', logo: 'postgresql' },
+        { name: 'MySQL', logo: 'mysql' },
+        { name: 'SQLite', logo: 'sqlite' },
+        { name: 'SQL', icon: 'database' },
       ],
     },
     {
@@ -180,14 +184,14 @@ export const profile = {
       label: { pt: 'Nuvem & Infra', en: 'Cloud & Infra' },
       blurb: { pt: 'Do servidor à nuvem: tudo no ar, monitorado e com backup.', en: 'From server to cloud: always on, monitored and backed up.' },
       items: [
-        { name: 'AWS', short: 'AWS' },
-        { name: 'Docker', short: 'Dk' },
-        { name: 'Linux', short: 'Lx' },
-        { name: { pt: 'Redes', en: 'Networking' }, short: 'Net' },
-        { name: 'Cloudflare', short: 'CF' },
-        { name: 'Netlify', short: 'Nf' },
-        { name: 'Render', short: 'Rd' },
-        { name: 'Git & GitHub', short: 'Git' },
+        { name: 'AWS', icon: 'cloud' },
+        { name: 'Docker', logo: 'docker' },
+        { name: 'Linux', logo: 'linux' },
+        { name: { pt: 'Redes', en: 'Networking' }, icon: 'network' },
+        { name: 'Cloudflare', logo: 'cloudflare' },
+        { name: 'Netlify', logo: 'netlify' },
+        { name: 'Render', logo: 'render' },
+        { name: 'Git & GitHub', logo: 'github' },
       ],
     },
     {
@@ -196,11 +200,11 @@ export const profile = {
       label: { pt: 'IA & Automação', en: 'AI & Automation' },
       blurb: { pt: 'Agentes e fluxos automáticos que trabalham pela sua equipe.', en: 'Agents and automated workflows that work for your team.' },
       items: [
-        { name: { pt: 'Agentes de IA', en: 'AI agents' }, short: 'AI' },
-        { name: { pt: 'APIs de LLM', en: 'LLM APIs' }, short: 'LLM' },
-        { name: 'n8n', short: 'n8n' },
-        { name: 'Machine Learning', short: 'ML' },
-        { name: 'Telegram Bots', short: 'Bot' },
+        { name: { pt: 'Agentes de IA', en: 'AI agents' }, icon: 'bot' },
+        { name: { pt: 'APIs de LLM', en: 'LLM APIs' }, icon: 'sparkles' },
+        { name: 'n8n', logo: 'n8n' },
+        { name: 'Machine Learning', icon: 'ai' },
+        { name: 'Telegram Bots', logo: 'telegram' },
       ],
     },
   ] as StackCategory[],

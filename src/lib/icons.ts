@@ -31,6 +31,7 @@ import {
   TrendingUp,
   Users,
   Waves,
+  Webhook,
   Workflow,
 } from 'lucide-react'
 
@@ -66,6 +67,7 @@ export const icons = {
   cloud: Cloud,
   frontend: LayoutTemplate,
   ai: BrainCircuit,
+  webhook: Webhook,
 }
 
 export type IconName = keyof typeof icons
