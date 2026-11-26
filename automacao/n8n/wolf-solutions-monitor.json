@@ -1,5 +1,5 @@
 {
-  "name": "Wolf Solutions — Contatos e monitor do site",
+  "name": "Wolf Solutions — Contatos, boas-vindas e monitor do site",
   "nodes": [
     {
       "id": "584e11e8-dfab-4275-bd79-47ffc51bf96b",
@@ -52,7 +52,7 @@
         240,
         100
       ],
-      "notes": "Edite aqui: endereço da API no Render, endereço do site no Netlify e o seu chat_id do Telegram.",
+      "notes": "Edite aqui: endereço da API e do site, seu chat_id do Telegram e o e-mail que envia as boas-vindas.",
       "notesInFlow": true,
       "parameters": {
         "mode": "manual",
@@ -87,6 +87,36 @@
               "id": "3be0b039-6d21-4c9a-bfda-ef42a3da3122",
               "name": "falhasParaAlerta",
               "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "2ce2007d-be1e-4dad-b06a-75282f68c9c7",
+              "name": "enviarBoasVindas",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "9977eac0-83c8-4c1f-ae92-9205454f3a75",
+              "name": "emailRemetente",
+              "value": "trabalho.nicolaswolf@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "ccc2b1f8-bb25-4550-8d8a-ab17c26fd482",
+              "name": "nomeRemetente",
+              "value": "Wolf Solutions",
+              "type": "string"
+            },
+            {
+              "id": "bcd5f8ea-7b34-4f50-ac76-a5701c255ad7",
+              "name": "assinatura",
+              "value": "Nicolas Wolf",
+              "type": "string"
+            },
+            {
+              "id": "de56825d-37cf-4d9d-a4a4-7c9c714dce66",
+              "name": "boasVindasAteHoras",
+              "value": 48,
               "type": "number"
             }
           ]
@@ -170,7 +200,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// Recebe a resposta da API (lista de contatos) ou o erro da chamada.\n// Guarda o último contato avisado e conta falhas seguidas na memória do fluxo.\nconst state = $getWorkflowStaticData('global');\nconst cfg = $('Configuração').first().json;\nconst r = $input.first().json;\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst out = [];\n\nconst ok = r.statusCode === 200 && Array.isArray(r.body);\n\nif (!ok) {\n  // Falha: timeout, API fora, senha errada (401), erro 500...\n  const detalhe = r.error?.message || r.error || (r.statusCode ? `HTTP ${r.statusCode}: ${JSON.stringify(r.body).slice(0, 200)}` : 'sem detalhes');\n  state.failures = (state.failures || 0) + 1;\n  if (state.failures >= cfg.falhasParaAlerta && !state.apiDown) {\n    state.apiDown = true;\n    out.push({ json: { text: `🚨 <b>Site/API com problema</b>\\n${state.failures} verificações seguidas falharam.\\n\\n<code>${esc(String(detalhe).slice(0, 300))}</code>\\n\\nPainel: ${esc(cfg.siteUrl)}/admin` } });\n  }\n  return out;\n}\n\nif (state.apiDown) {\n  out.push({ json: { text: `✅ <b>API voltou</b>\\nRespondendo normalmente depois de ${state.failures} verificações com falha.` } });\n}\nstate.failures = 0;\nstate.apiDown = false;\n\nconst contatos = r.body.filter((c) => c && typeof c.id === 'number');\nconst maxId = contatos.reduce((m, c) => Math.max(m, c.id), 0);\n\n// Primeira execução: só marca onde parou, sem avisar contatos antigos.\nif (state.lastId === undefined) {\n  state.lastId = maxId;\n  out.push({ json: { text: `🐺 <b>Monitor da Wolf Solutions ligado</b>\\nVou te avisar aqui a cada contato novo do site.\\nContatos já existentes: ${contatos.length}.` } });\n  return out;\n}\n// Banco foi zerado (ids recomeçaram): volta o marcador.\nif (maxId < state.lastId) state.lastId = 0;\n\nconst origem = { quiz: 'Diagnóstico de IA', form: 'Formulário de contato' };\nconst novos = contatos.filter((c) => c.id > state.lastId).sort((a, b) => a.id - b.id);\n\nfor (const c of novos) {\n  const quando = DateTime.fromISO(c.created_at).setZone(cfg.fuso).toFormat('dd/MM HH:mm');\n  const linhas = [\n    `🔔 <b>Novo contato no site</b> (${esc(origem[c.source] || c.source)})`,\n    '',\n    `👤 <b>${esc(c.name)}</b>${c.company ? ` — ${esc(c.company)}` : ''}`,\n  ];\n  if (c.whatsapp) {\n    let num = String(c.whatsapp).replace(/\\D/g, '');\n    if (num.length <= 11) num = '55' + num;\n    linhas.push(`📱 WhatsApp: <a href=\"https://wa.me/${num}\">${esc(c.whatsapp)}</a>`);\n  }\n  if (c.email) linhas.push(`✉️ ${esc(c.email)}`);\n  if (c.message) {\n    const msg = String(c.message);\n    linhas.push('', `💬 ${esc(msg.length > 700 ? msg.slice(0, 700) + '…' : msg)}`);\n  }\n  linhas.push('', `🕒 ${quando} · #${c.id} · <a href=\"${esc(cfg.siteUrl)}/admin\">abrir painel</a>`);\n  out.push({ json: { text: linhas.join('\\n') } });\n}\n\nstate.lastId = Math.max(state.lastId, maxId);\nreturn out;\n"
+        "jsCode": "// Recebe a resposta da API (lista de contatos) ou o erro da chamada.\n// Saída: itens { tipo: 'telegram', text } para você e { tipo: 'email', ... } de boas-vindas para o cliente.\n// Guarda o último contato avisado e conta falhas seguidas na memória do fluxo.\nconst state = $getWorkflowStaticData('global');\nconst cfg = $('Configuração').first().json;\nconst r = $input.first().json;\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst out = [];\nconst telegram = (text) => out.push({ json: { tipo: 'telegram', text } });\n\nconst ok = r.statusCode === 200 && Array.isArray(r.body);\n\nif (!ok) {\n  // Falha: timeout, API fora, senha errada (401), erro 500...\n  const detalhe = r.error?.message || r.error || (r.statusCode ? `HTTP ${r.statusCode}: ${JSON.stringify(r.body).slice(0, 200)}` : 'sem detalhes');\n  state.failures = (state.failures || 0) + 1;\n  if (state.failures >= cfg.falhasParaAlerta && !state.apiDown) {\n    state.apiDown = true;\n    telegram(`🚨 <b>Site/API com problema</b>\\n${state.failures} verificações seguidas falharam.\\n\\n<code>${esc(String(detalhe).slice(0, 300))}</code>\\n\\nPainel: ${esc(cfg.siteUrl)}/admin`);\n  }\n  return out;\n}\n\nif (state.apiDown) telegram(`✅ <b>API voltou</b>\\nRespondendo normalmente depois de ${state.failures} verificações com falha.`);\nstate.failures = 0;\nstate.apiDown = false;\n\nconst contatos = r.body.filter((c) => c && typeof c.id === 'number');\nconst maxId = contatos.reduce((m, c) => Math.max(m, c.id), 0);\n\n// Primeira execução: só marca onde parou, sem avisar nem mandar e-mail para contatos antigos.\nif (state.lastId === undefined) {\n  state.lastId = maxId;\n  telegram(`🐺 <b>Monitor da Wolf Solutions ligado</b>\\nVou te avisar aqui a cada contato novo do site.\\nContatos já existentes: ${contatos.length}.`);\n  return out;\n}\n// Banco foi zerado (ids recomeçaram): volta o marcador.\nif (maxId < state.lastId) state.lastId = 0;\n\n// ── E-mail de boas-vindas ─────────────────────────────────────────\nconst primeiroNome = (nome) => {\n  const p = String(nome || '').trim().split(/\\s+/)[0] || '';\n  return p ? p.charAt(0).toUpperCase() + p.slice(1) : '';\n};\n\nfunction emailBoasVindas(c) {\n  const nome = primeiroNome(c.name);\n  const quiz = c.source === 'quiz';\n  const canal = c.whatsapp ? 'pelo WhatsApp ou por este e-mail' : 'por este e-mail';\n  const assunto = quiz\n    ? `Recebemos seu diagnóstico${nome ? `, ${nome}` : ''} — Wolf Solutions`\n    : `Recebemos sua mensagem${nome ? `, ${nome}` : ''} — Wolf Solutions`;\n  const paragrafos = quiz\n    ? [\n        'Obrigado por fazer o diagnóstico de IA da Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Suas respostas já chegaram até nós. Um especialista da nossa equipe vai analisá-las com atenção e entrar em contato em breve, ${canal}, para mostrar as oportunidades que encontramos — sem compromisso.`,\n      ]\n    : [\n        'Obrigado por entrar em contato com a Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Sua mensagem já chegou até nós. Um especialista da nossa equipe vai analisá-la com atenção e entrar em contato em breve, ${canal}, para conversar sobre como podemos ajudar — sem compromisso.`,\n      ];\n  paragrafos.push('Se quiser adiantar a conversa, é só responder este e-mail.');\n\n  const saudacao = nome ? `Olá, ${nome}!` : 'Olá!';\n  const p = (t) => `<p style=\"margin:0 0 16px;font-size:16px;line-height:1.6;color:#3f3d56;\">${esc(t)}</p>`;\n  const html = `<!DOCTYPE html>\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${esc(assunto)}</title></head>\n<body style=\"margin:0;padding:0;background:#f6f5fb;font-family:Arial,Helvetica,sans-serif;\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f6f5fb;padding:32px 12px;\"><tr><td align=\"center\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #ebe8f5;\">\n<tr><td style=\"background:#7c3aed;background-image:linear-gradient(135deg,#7c3aed,#c026d3);padding:28px 32px;\">\n<span style=\"font-size:20px;font-weight:bold;color:#ffffff;letter-spacing:0.3px;\">Wolf Solutions</span><br>\n<span style=\"font-size:13px;color:#ede9fe;\">IA que resolve. Sem complicar o seu negócio.</span>\n</td></tr>\n<tr><td style=\"padding:32px;\">\n<p style=\"margin:0 0 20px;font-size:20px;font-weight:bold;color:#16141f;\">${esc(saudacao)}</p>\n${paragrafos.map(p).join('\\n')}\n<p style=\"margin:24px 0 0;font-size:16px;line-height:1.5;color:#3f3d56;\">Um abraço,<br><strong style=\"color:#16141f;\">${esc(cfg.assinatura)}</strong><br>Wolf Solutions</p>\n</td></tr>\n<tr><td style=\"padding:18px 32px;background:#faf9fd;border-top:1px solid #ebe8f5;font-size:12px;line-height:1.5;color:#8a879c;\">\nVocê recebeu este e-mail porque pediu contato pelo site <a href=\"${esc(cfg.siteUrl)}\" style=\"color:#7c3aed;\">${esc(cfg.siteUrl.replace(/^https?:\\/\\//, ''))}</a>.\n</td></tr>\n</table></td></tr></table></body></html>`;\n  const texto = [saudacao, '', ...paragrafos.flatMap((t) => [t, '']), 'Um abraço,', cfg.assinatura, 'Wolf Solutions'].join('\\n');\n  return { tipo: 'email', para: c.email, assunto, html, texto };\n}\n\nconst origem = { quiz: 'Diagnóstico de IA', form: 'Formulário de contato' };\nconst novos = contatos.filter((c) => c.id > state.lastId).sort((a, b) => a.id - b.id);\nconst agora = DateTime.now();\n\nfor (const c of novos) {\n  const criado = DateTime.fromISO(c.created_at);\n  const quando = criado.setZone(cfg.fuso).toFormat('dd/MM HH:mm');\n  // Só manda boas-vindas para contato recente (se o PC ficou dias desligado, um \"recebemos\" atrasado soa estranho).\n  const enviarEmail = cfg.enviarBoasVindas && !!c.email && agora.diff(criado, 'hours').hours <= cfg.boasVindasAteHoras;\n\n  const linhas = [\n    `🔔 <b>Novo contato no site</b> (${esc(origem[c.source] || c.source)})`,\n    '',\n    `👤 <b>${esc(c.name)}</b>${c.company ? ` — ${esc(c.company)}` : ''}`,\n  ];\n  if (c.whatsapp) {\n    let num = String(c.whatsapp).replace(/\\D/g, '');\n    if (num.length <= 11) num = '55' + num;\n    linhas.push(`📱 WhatsApp: <a href=\"https://wa.me/${num}\">${esc(c.whatsapp)}</a>`);\n  }\n  if (c.email) linhas.push(`✉️ ${esc(c.email)}`);\n  if (c.message) {\n    const msg = String(c.message);\n    linhas.push('', `💬 ${esc(msg.length > 700 ? msg.slice(0, 700) + '…' : msg)}`);\n  }\n  if (enviarEmail) linhas.push('', '📨 E-mail de boas-vindas a caminho do cliente (se falhar, te aviso aqui).');\n  else if (c.email && cfg.enviarBoasVindas) linhas.push('', '📭 Boas-vindas não enviado (contato antigo — responda você).');\n  linhas.push('', `🕒 ${quando} · #${c.id} · <a href=\"${esc(cfg.siteUrl)}/admin\">abrir painel</a>`);\n  telegram(linhas.join('\\n'));\n\n  if (enviarEmail) out.push({ json: emailBoasVindas(c) });\n}\n\nstate.lastId = Math.max(state.lastId, maxId);\nreturn out;\n"
       }
     },
     {
@@ -205,7 +235,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// Monta o resumo diário a partir de /api/admin/summary.\nconst cfg = $('Configuração').first().json;\nconst s = $input.first().json;\nconst esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst top = (obj) =>\n  Object.entries(obj || {})\n    .slice(0, 3)\n    .map(([k, v]) => `${esc(k)} (${v})`)\n    .join(', ') || '—';\n\nconst text = [\n  '☀️ <b>Bom dia! Resumo do site</b>',\n  '',\n  `📥 Contatos: <b>${s.total_contacts}</b> no total — <b>${s.new_contacts}</b> ainda como \"novo\"`,\n  `🧭 Diagnósticos: <b>${s.quiz_last_7_days}</b> nos últimos 7 dias (${s.total_quiz} no total)`,\n  `🏷️ Ramos que mais aparecem: ${top(s.by_sector)}`,\n  '',\n  `Painel: ${esc(cfg.siteUrl)}/admin`,\n].join('\\n');\n\nreturn [{ json: { text } }];\n"
+        "jsCode": "// Monta o resumo diário a partir de /api/admin/summary.\nconst cfg = $('Configuração').first().json;\nconst s = $input.first().json;\nconst esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst top = (obj) =>\n  Object.entries(obj || {})\n    .slice(0, 3)\n    .map(([k, v]) => `${esc(k)} (${v})`)\n    .join(', ') || '—';\n\nconst text = [\n  '☀️ <b>Bom dia! Resumo do site</b>',\n  '',\n  `📥 Contatos: <b>${s.total_contacts}</b> no total — <b>${s.new_contacts}</b> ainda como \"novo\"`,\n  `🧭 Diagnósticos: <b>${s.quiz_last_7_days}</b> nos últimos 7 dias (${s.total_quiz} no total)`,\n  `🏷️ Ramos que mais aparecem: ${top(s.by_sector)}`,\n  '',\n  `Painel: ${esc(cfg.siteUrl)}/admin`,\n].join('\\n');\n\nreturn [{ json: { tipo: 'telegram', text } }];\n"
       }
     },
     {
@@ -214,8 +244,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1200,
-        100
+        1680,
+        200
       ],
       "webhookId": "a05d5000-103f-4ae1-b8a7-e8b02a930aba",
       "parameters": {
@@ -226,6 +256,81 @@
           "parse_mode": "HTML",
           "disable_web_page_preview": true
         }
+      }
+    },
+    {
+      "id": "99d9ccd7-aef1-460b-bd6a-28d941b07d86",
+      "name": "É e-mail?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2a1024a-9bc7-4208-a7c6-e73e4458a476",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "email",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7c912466-91d6-447c-ae93-e8078e5b10e2",
+      "name": "Enviar boas-vindas",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1440,
+        420
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "notes": "Credencial SMTP: smtp.gmail.com, porta 465, SSL ligado, usuário = seu Gmail, senha = senha de app do Google",
+      "notesInFlow": true,
+      "parameters": {
+        "fromEmail": "={{ $('Configuração').first().json.nomeRemetente }} <{{ $('Configuração').first().json.emailRemetente }}>",
+        "toEmail": "={{ $json.para }}",
+        "subject": "={{ $json.assunto }}",
+        "emailFormat": "both",
+        "text": "={{ $json.texto }}",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $('Configuração').first().json.emailRemetente }}"
+        }
+      }
+    },
+    {
+      "id": "1923fab4-257b-4f5a-a2de-508078dede50",
+      "name": "Avisar falha do e-mail",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        520
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Se o Gmail recusar o envio, você fica sabendo no Telegram.\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nreturn $input.all().map((i) => ({\n  json: {\n    tipo: 'telegram',\n    text: `⚠️ <b>Boas-vindas não foi enviado</b> para ${esc(i.json.para)}\\n<code>${esc(String(i.json.error?.message || i.json.error || 'sem detalhes').slice(0, 300))}</code>\\nResponda esse cliente você mesmo.`,\n  },\n}));"
       }
     }
   ],
@@ -303,7 +408,7 @@
       "main": [
         [
           {
-            "node": "Enviar no Telegram",
+            "node": "É e-mail?",
             "type": "main",
             "index": 0
           }
@@ -322,6 +427,47 @@
       ]
     },
     "Montar resumo": {
+      "main": [
+        [
+          {
+            "node": "Enviar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É e-mail?": {
+      "main": [
+        [
+          {
+            "node": "Enviar boas-vindas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar boas-vindas": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Avisar falha do e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar falha do e-mail": {
       "main": [
         [
           {
