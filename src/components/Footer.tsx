@@ -22,6 +22,9 @@ export function Footer() {
           <Link to="/blog" className="transition-colors hover:text-fg">
             Blog
           </Link>
+          <Link to="/privacidade" className="transition-colors hover:text-fg">
+            {ui.footer.privacy}
+          </Link>
           <button type="button" onClick={() => scrollToTop()} className="inline-flex items-center gap-1 transition-colors hover:text-fg">
             <ArrowUp className="size-4" />
             {ui.footer.top}

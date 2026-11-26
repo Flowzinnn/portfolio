@@ -1,7 +1,8 @@
-# n8n: aviso de contatos no Telegram, e-mail de boas-vindas e monitor do site
+# n8n: aviso de contatos no Telegram, e-mail de boas-vindas, backup e monitor do site
 
 Roda no seu PC. A cada 2 minutos o n8n pergunta à API (no Render) se chegou contato novo, te avisa
-no Telegram e manda um e-mail de boas-vindas para o cliente. Também avisa se o site/API cair, quando voltar, e manda um resumo todo dia às 8h.
+no Telegram e manda um e-mail de boas-vindas para o cliente. Também avisa se o site/API cair, quando voltar,
+manda um resumo todo dia às 8h e, toda segunda às 8h05, um backup com as planilhas de contatos e diagnósticos.
 
 ```
 Site (Netlify) → API (Render) → banco (Neon)
@@ -9,7 +10,8 @@ Site (Netlify) → API (Render) → banco (Neon)
               n8n no seu PC ──→ Telegram 📱
 ```
 
-**E-mail de boas-vindas para o cliente:** sai do seu Gmail com o nome *Wolf Solutions*, para todo
+**E-mail de boas-vindas para o cliente:** só texto, com cara de e-mail escrito à mão (cai bem menos
+no spam do que um e-mail com visual de propaganda). Sai do seu Gmail com o nome *Wolf Solutions*, para todo
 contato que deixou e-mail (o site só aceita o contato com a autorização marcada). Texto diferente para
 quem veio do diagnóstico e para quem usou o formulário. Respostas do cliente caem no seu Gmail. Se o
 PC ficou desligado mais de 48 h, o e-mail não é mandado (um "recebemos" dias depois soa estranho) e o
@@ -30,6 +32,7 @@ O que você recebe:
 | 🚨 Site/API com problema | 3 verificações seguidas falharam (~6 min fora do ar ou senha errada) |
 | ✅ API voltou | Na primeira verificação que der certo depois de um alerta |
 | ☀️ Resumo do dia | Todo dia às 8h (contatos, diagnósticos da semana, ramos) |
+| 🗄️ Backup semanal | Toda segunda às 8h05: `contatos-AAAA-MM-DD.csv` e `diagnosticos-AAAA-MM-DD.csv` (abrem no Excel) |
 
 ## 1. Instalar o Docker (uma vez)
 
@@ -64,23 +67,24 @@ Abra http://localhost:5678 e crie a conta de dono do n8n (fica só no seu PC).
 1. No n8n: **Create workflow → ⋯ (canto superior direito) → Import from File** → escolha
    `wolf-solutions-monitor.json` (nesta pasta).
 2. No nó **Configuração**, troque:
-   - `apiUrl` → endereço da API no Render (ex.: `https://wolf-solutions-api.onrender.com`)
-   - `siteUrl` → endereço do site no Netlify (ex.: `https://wolfsolutions.netlify.app`)
+   - `apiUrl` / `siteUrl` → já vêm com `https://wolf-solutions-api.onrender.com` e
+     `https://wolfsolutions.netlify.app`
    - `chatId` → o número do @userinfobot
    - `emailRemetente` → já vem com `trabalho.nicolaswolf@gmail.com`
-3. Nos nós **Buscar contatos** e **Buscar resumo**, em *Credential*, crie uma **Header Auth**:
+3. Nos nós **Buscar contatos**, **Buscar resumo** e **Baixar planilha**, em *Credential*, crie uma **Header Auth**:
    - Name: `Authorization`
    - Value: `Bearer SUA_SENHA_DO_ADMIN` (a mesma `ADMIN_PASSWORD` do Render, com a palavra
      `Bearer` e um espaço antes)
-   Use a mesma credencial nos dois nós.
-4. No nó **Enviar no Telegram**, crie uma credencial **Telegram API** com o token do BotFather.
+   Use a mesma credencial nos três nós.
+4. Nos nós **Enviar no Telegram** e **Enviar backup no Telegram**, crie (ou escolha) a credencial
+   **Telegram API** com o token do BotFather.
 5. No nó **Enviar boas-vindas**, crie uma credencial **SMTP** (veja o passo 5 abaixo).
-6. Salve e ligue o botão **Inactive → Active** no topo.
+6. Clique em **Publish** no topo.
 
 Em até 2 minutos chega a mensagem 🐺 *Monitor ligado*.
 
 > Testando com **Execute workflow** (o botão manual), o n8n não guarda a memória do fluxo: cada
-> teste manda o *Monitor ligado* de novo. Com o fluxo **Active**, ele lembra do último contato avisado.
+> teste manda o *Monitor ligado* de novo. Com o fluxo publicado (**Published**), ele lembra do último contato avisado.
 
 ## 5. Senha de app do Gmail (para o e-mail de boas-vindas)
 
@@ -97,6 +101,15 @@ O Gmail não aceita a sua senha normal em programas. Ele gera uma "senha de app"
 
 Para testar, envie o formulário do site com um e-mail seu: em até 2 minutos chegam o aviso no
 Telegram e o e-mail de boas-vindas.
+
+## Atualizar para uma versão nova do fluxo
+
+1. No fluxo antigo, clique em **Published → Unpublish** (senão os dois rodam e você recebe tudo em dobro).
+2. Importe o `wolf-solutions-monitor.json` novo (como no passo 4) e escolha as credenciais que já existem
+   em cada nó — não precisa criar de novo.
+3. Preencha o `chatId` no nó **Configuração** e clique em **Publish**.
+4. Chega de novo o 🐺 *Monitor ligado* (o fluxo novo começa do zero, sem repetir contatos antigos).
+   Depois apague o fluxo antigo.
 
 ## Problemas comuns
 

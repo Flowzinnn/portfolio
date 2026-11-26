@@ -1,5 +1,5 @@
 {
-  "name": "Wolf Solutions — Contatos, boas-vindas e monitor do site",
+  "name": "Wolf Solutions — Contatos, boas-vindas, backup e monitor do site",
   "nodes": [
     {
       "id": "584e11e8-dfab-4275-bd79-47ffc51bf96b",
@@ -68,7 +68,7 @@
             {
               "id": "2176d8fe-f0b4-4edb-a4b0-ee052c66372a",
               "name": "siteUrl",
-              "value": "https://SEU-SITE.netlify.app",
+              "value": "https://wolfsolutions.netlify.app",
               "type": "string"
             },
             {
@@ -119,40 +119,6 @@
       }
     },
     {
-      "id": "663b03d1-5990-4c91-b583-037389e10b33",
-      "name": "É o resumo diário?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        480,
-        100
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "86637f33-8763-4302-b3c4-63eb772981b6",
-              "leftValue": "={{ $('Todo dia às 8h').isExecuted }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      }
-    },
-    {
       "id": "c8dba04c-7af3-4323-b755-20c7c8ecedd5",
       "name": "Buscar contatos",
       "type": "n8n-nodes-base.httpRequest",
@@ -194,7 +160,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// Recebe a resposta da API (lista de contatos) ou o erro da chamada.\n// Saída: itens { tipo: 'telegram', text } para você e { tipo: 'email', ... } de boas-vindas para o cliente.\n// Guarda o último contato avisado e conta falhas seguidas na memória do fluxo.\nconst state = $getWorkflowStaticData('global');\nconst cfg = $('Configuração').first().json;\nconst r = $input.first().json;\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst out = [];\nconst telegram = (text) => out.push({ json: { tipo: 'telegram', text } });\n\nconst ok = r.statusCode === 200 && Array.isArray(r.body);\n\nif (!ok) {\n  // Falha: timeout, API fora, senha errada (401), erro 500...\n  const detalhe = r.error?.message || r.error || (r.statusCode ? `HTTP ${r.statusCode}: ${JSON.stringify(r.body).slice(0, 200)}` : 'sem detalhes');\n  state.failures = (state.failures || 0) + 1;\n  if (state.failures >= cfg.falhasParaAlerta && !state.apiDown) {\n    state.apiDown = true;\n    telegram(`🚨 <b>Site/API com problema</b>\\n${state.failures} verificações seguidas falharam.\\n\\n<code>${esc(String(detalhe).slice(0, 300))}</code>\\n\\nPainel: ${esc(cfg.siteUrl)}/admin`);\n  }\n  return out;\n}\n\nif (state.apiDown) telegram(`✅ <b>API voltou</b>\\nRespondendo normalmente depois de ${state.failures} verificações com falha.`);\nstate.failures = 0;\nstate.apiDown = false;\n\nconst contatos = r.body.filter((c) => c && typeof c.id === 'number');\nconst maxId = contatos.reduce((m, c) => Math.max(m, c.id), 0);\n\n// Primeira execução: só marca onde parou, sem avisar nem mandar e-mail para contatos antigos.\nif (state.lastId === undefined) {\n  state.lastId = maxId;\n  telegram(`🐺 <b>Monitor da Wolf Solutions ligado</b>\\nVou te avisar aqui a cada contato novo do site.\\nContatos já existentes: ${contatos.length}.`);\n  return out;\n}\n// Banco foi zerado (ids recomeçaram): volta o marcador.\nif (maxId < state.lastId) state.lastId = 0;\n\n// ── E-mail de boas-vindas ─────────────────────────────────────────\nconst primeiroNome = (nome) => {\n  const p = String(nome || '').trim().split(/\\s+/)[0] || '';\n  return p ? p.charAt(0).toUpperCase() + p.slice(1) : '';\n};\n\nfunction emailBoasVindas(c) {\n  const nome = primeiroNome(c.name);\n  const quiz = c.source === 'quiz';\n  const canal = c.whatsapp ? 'pelo WhatsApp ou por este e-mail' : 'por este e-mail';\n  const assunto = quiz\n    ? `Recebemos seu diagnóstico${nome ? `, ${nome}` : ''} — Wolf Solutions`\n    : `Recebemos sua mensagem${nome ? `, ${nome}` : ''} — Wolf Solutions`;\n  const paragrafos = quiz\n    ? [\n        'Obrigado por fazer o diagnóstico de IA da Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Suas respostas já chegaram até nós. Um especialista da nossa equipe vai analisá-las com atenção e entrar em contato em breve, ${canal}, para mostrar as oportunidades que encontramos — sem compromisso.`,\n      ]\n    : [\n        'Obrigado por entrar em contato com a Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Sua mensagem já chegou até nós. Um especialista da nossa equipe vai analisá-la com atenção e entrar em contato em breve, ${canal}, para conversar sobre como podemos ajudar — sem compromisso.`,\n      ];\n  paragrafos.push('Se quiser adiantar a conversa, é só responder este e-mail.');\n\n  const saudacao = nome ? `Olá, ${nome}!` : 'Olá!';\n  const p = (t) => `<p style=\"margin:0 0 16px;font-size:16px;line-height:1.6;color:#3f3d56;\">${esc(t)}</p>`;\n  const html = `<!DOCTYPE html>\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${esc(assunto)}</title></head>\n<body style=\"margin:0;padding:0;background:#f6f5fb;font-family:Arial,Helvetica,sans-serif;\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f6f5fb;padding:32px 12px;\"><tr><td align=\"center\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #ebe8f5;\">\n<tr><td style=\"background:#7c3aed;background-image:linear-gradient(135deg,#7c3aed,#c026d3);padding:28px 32px;\">\n<span style=\"font-size:20px;font-weight:bold;color:#ffffff;letter-spacing:0.3px;\">Wolf Solutions</span><br>\n<span style=\"font-size:13px;color:#ede9fe;\">IA que resolve. Sem complicar o seu negócio.</span>\n</td></tr>\n<tr><td style=\"padding:32px;\">\n<p style=\"margin:0 0 20px;font-size:20px;font-weight:bold;color:#16141f;\">${esc(saudacao)}</p>\n${paragrafos.map(p).join('\\n')}\n<p style=\"margin:24px 0 0;font-size:16px;line-height:1.5;color:#3f3d56;\">Um abraço,<br><strong style=\"color:#16141f;\">Wolf Solutions</strong></p>\n</td></tr>\n<tr><td style=\"padding:18px 32px;background:#faf9fd;border-top:1px solid #ebe8f5;font-size:12px;line-height:1.5;color:#8a879c;\">\nVocê recebeu este e-mail porque pediu contato pelo site <a href=\"${esc(cfg.siteUrl)}\" style=\"color:#7c3aed;\">${esc(cfg.siteUrl.replace(/^https?:\\/\\//, ''))}</a>.\n</td></tr>\n</table></td></tr></table></body></html>`;\n  const texto = [saudacao, '', ...paragrafos.flatMap((t) => [t, '']), 'Um abraço,', 'Wolf Solutions'].join('\\n');\n  return { tipo: 'email', para: c.email, assunto, html, texto };\n}\n\nconst origem = { quiz: 'Diagnóstico de IA', form: 'Formulário de contato' };\nconst novos = contatos.filter((c) => c.id > state.lastId).sort((a, b) => a.id - b.id);\nconst agora = DateTime.now();\n\nfor (const c of novos) {\n  const criado = DateTime.fromISO(c.created_at);\n  const quando = criado.setZone(cfg.fuso).toFormat('dd/MM HH:mm');\n  // Só manda boas-vindas para contato recente (se o PC ficou dias desligado, um \"recebemos\" atrasado soa estranho).\n  const enviarEmail = cfg.enviarBoasVindas && !!c.email && agora.diff(criado, 'hours').hours <= cfg.boasVindasAteHoras;\n\n  const linhas = [\n    `🔔 <b>Novo contato no site</b> (${esc(origem[c.source] || c.source)})`,\n    '',\n    `👤 <b>${esc(c.name)}</b>${c.company ? ` — ${esc(c.company)}` : ''}`,\n  ];\n  if (c.whatsapp) {\n    let num = String(c.whatsapp).replace(/\\D/g, '');\n    if (num.length <= 11) num = '55' + num;\n    linhas.push(`📱 WhatsApp: <a href=\"https://wa.me/${num}\">${esc(c.whatsapp)}</a>`);\n  }\n  if (c.email) linhas.push(`✉️ ${esc(c.email)}`);\n  if (c.message) {\n    const msg = String(c.message);\n    linhas.push('', `💬 ${esc(msg.length > 700 ? msg.slice(0, 700) + '…' : msg)}`);\n  }\n  if (enviarEmail) linhas.push('', '📨 E-mail de boas-vindas a caminho do cliente (se falhar, te aviso aqui).');\n  else if (c.email && cfg.enviarBoasVindas) linhas.push('', '📭 Boas-vindas não enviado (contato antigo — responda você).');\n  linhas.push('', `🕒 ${quando} · #${c.id} · <a href=\"${esc(cfg.siteUrl)}/admin\">abrir painel</a>`);\n  telegram(linhas.join('\\n'));\n\n  if (enviarEmail) out.push({ json: emailBoasVindas(c) });\n}\n\nstate.lastId = Math.max(state.lastId, maxId);\nreturn out;\n"
+        "jsCode": "// Recebe a resposta da API (lista de contatos) ou o erro da chamada.\n// Saída: itens { tipo: 'telegram', text } para você e { tipo: 'email', ... } de boas-vindas para o cliente.\n// Guarda o último contato avisado e conta falhas seguidas na memória do fluxo.\nconst state = $getWorkflowStaticData('global');\nconst cfg = $('Configuração').first().json;\nconst r = $input.first().json;\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst out = [];\nconst telegram = (text) => out.push({ json: { tipo: 'telegram', text } });\n\nconst ok = r.statusCode === 200 && Array.isArray(r.body);\n\nif (!ok) {\n  // Falha: timeout, API fora, senha errada (401), erro 500...\n  const detalhe = r.error?.message || r.error || (r.statusCode ? `HTTP ${r.statusCode}: ${JSON.stringify(r.body).slice(0, 200)}` : 'sem detalhes');\n  state.failures = (state.failures || 0) + 1;\n  if (state.failures >= cfg.falhasParaAlerta && !state.apiDown) {\n    state.apiDown = true;\n    telegram(`🚨 <b>Site/API com problema</b>\\n${state.failures} verificações seguidas falharam.\\n\\n<code>${esc(String(detalhe).slice(0, 300))}</code>\\n\\nPainel: ${esc(cfg.siteUrl)}/admin`);\n  }\n  return out;\n}\n\nif (state.apiDown) telegram(`✅ <b>API voltou</b>\\nRespondendo normalmente depois de ${state.failures} verificações com falha.`);\nstate.failures = 0;\nstate.apiDown = false;\n\nconst contatos = r.body.filter((c) => c && typeof c.id === 'number');\nconst maxId = contatos.reduce((m, c) => Math.max(m, c.id), 0);\n\n// Primeira execução: só marca onde parou, sem avisar nem mandar e-mail para contatos antigos.\nif (state.lastId === undefined) {\n  state.lastId = maxId;\n  telegram(`🐺 <b>Monitor da Wolf Solutions ligado</b>\\nVou te avisar aqui a cada contato novo do site.\\nContatos já existentes: ${contatos.length}.`);\n  return out;\n}\n// Banco foi zerado (ids recomeçaram): volta o marcador.\nif (maxId < state.lastId) state.lastId = 0;\n\n// ── E-mail de boas-vindas ─────────────────────────────────────────\nconst primeiroNome = (nome) => {\n  const p = String(nome || '').trim().split(/\\s+/)[0] || '';\n  return p ? p.charAt(0).toUpperCase() + p.slice(1) : '';\n};\n\nfunction emailBoasVindas(c) {\n  // Só texto, com cara de e-mail escrito à mão: cai bem menos no spam do que um e-mail com visual de propaganda.\n  const nome = primeiroNome(c.name);\n  const quiz = c.source === 'quiz';\n  const canal = c.whatsapp ? 'pelo WhatsApp ou por este e-mail' : 'por este e-mail';\n  const assunto = quiz\n    ? `Recebemos seu diagnóstico${nome ? `, ${nome}` : ''}`\n    : `Recebemos sua mensagem${nome ? `, ${nome}` : ''}`;\n  const paragrafos = quiz\n    ? [\n        'Obrigado por fazer o diagnóstico de IA da Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Suas respostas já chegaram até nós. Um especialista da nossa equipe vai analisá-las com atenção e entrar em contato em breve, ${canal}, para mostrar as oportunidades que encontramos, sem compromisso.`,\n      ]\n    : [\n        'Obrigado por entrar em contato com a Wolf Solutions e pela confiança em nos contar sobre o seu negócio.',\n        `Sua mensagem já chegou até nós. Um especialista da nossa equipe vai analisá-la com atenção e entrar em contato em breve, ${canal}, para conversar sobre como podemos ajudar, sem compromisso.`,\n      ];\n  paragrafos.push('Se quiser adiantar a conversa, é só responder este e-mail.');\n\n  const saudacao = nome ? `Olá, ${nome}!` : 'Olá!';\n  const site = String(cfg.siteUrl || '').replace(/^https?:\\/\\//, '');\n  const texto = [saudacao, '', ...paragrafos.flatMap((t) => [t, '']), 'Um abraço,', 'Wolf Solutions', site].join('\\n');\n  return { tipo: 'email', para: c.email, assunto, texto };\n}\n\nconst origem = { quiz: 'Diagnóstico de IA', form: 'Formulário de contato' };\nconst novos = contatos.filter((c) => c.id > state.lastId).sort((a, b) => a.id - b.id);\nconst agora = DateTime.now();\n\nfor (const c of novos) {\n  const criado = DateTime.fromISO(c.created_at);\n  const quando = criado.setZone(cfg.fuso).toFormat('dd/MM HH:mm');\n  // Só manda boas-vindas para contato recente (se o PC ficou dias desligado, um \"recebemos\" atrasado soa estranho).\n  const enviarEmail = cfg.enviarBoasVindas && !!c.email && agora.diff(criado, 'hours').hours <= cfg.boasVindasAteHoras;\n\n  const linhas = [\n    `🔔 <b>Novo contato no site</b> (${esc(origem[c.source] || c.source)})`,\n    '',\n    `👤 <b>${esc(c.name)}</b>${c.company ? ` — ${esc(c.company)}` : ''}`,\n  ];\n  if (c.whatsapp) {\n    let num = String(c.whatsapp).replace(/\\D/g, '');\n    if (num.length <= 11) num = '55' + num;\n    linhas.push(`📱 WhatsApp: <a href=\"https://wa.me/${num}\">${esc(c.whatsapp)}</a>`);\n  }\n  if (c.email) linhas.push(`✉️ ${esc(c.email)}`);\n  if (c.message) {\n    const msg = String(c.message);\n    linhas.push('', `💬 ${esc(msg.length > 700 ? msg.slice(0, 700) + '…' : msg)}`);\n  }\n  if (enviarEmail) linhas.push('', '📨 E-mail de boas-vindas a caminho do cliente (se falhar, te aviso aqui).');\n  else if (c.email && cfg.enviarBoasVindas) linhas.push('', '📭 Boas-vindas não enviado (contato antigo — responda você).');\n  linhas.push('', `🕒 ${quando} · #${c.id} · <a href=\"${esc(cfg.siteUrl)}/admin\">abrir painel</a>`);\n  telegram(linhas.join('\\n'));\n\n  if (enviarEmail) out.push({ json: emailBoasVindas(c) });\n}\n\nstate.lastId = Math.max(state.lastId, maxId);\nreturn out;\n"
       }
     },
     {
@@ -304,9 +270,8 @@
         "fromEmail": "={{ $('Configuração').first().json.nomeRemetente }} <{{ $('Configuração').first().json.emailRemetente }}>",
         "toEmail": "={{ $json.para }}",
         "subject": "={{ $json.assunto }}",
-        "emailFormat": "both",
+        "emailFormat": "text",
         "text": "={{ $json.texto }}",
-        "html": "={{ $json.html }}",
         "options": {
           "appendAttribution": false,
           "replyTo": "={{ $('Configuração').first().json.emailRemetente }}"
@@ -325,6 +290,176 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "// Se o Gmail recusar o envio, você fica sabendo no Telegram.\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nreturn $input.all().map((i) => ({\n  json: {\n    tipo: 'telegram',\n    text: `⚠️ <b>Boas-vindas não foi enviado</b> para ${esc(i.json.para)}\\n<code>${esc(String(i.json.error?.message || i.json.error || 'sem detalhes').slice(0, 300))}</code>\\nResponda esse cliente você mesmo.`,\n  },\n}));"
+      }
+    },
+    {
+      "id": "cb67bb5e-5d62-4b97-91d4-c3b442a8158c",
+      "name": "Backup toda segunda",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        440
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8,
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b8ca3abc-160d-4402-a8c8-83447733b31b",
+      "name": "Qual tarefa?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        480,
+        100
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "822e04e4-7327-4b49-bdfb-14d28109fe2d",
+                    "leftValue": "={{ $('Todo dia às 8h').isExecuted }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Resumo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8f1ebb1a-a10b-4ca1-85cd-8d2be1d6b314",
+                    "leftValue": "={{ $('Backup toda segunda').isExecuted }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Backup"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Contatos"
+        }
+      }
+    },
+    {
+      "id": "332e05e6-ab85-4764-b06e-d6a0d80e33f0",
+      "name": "Arquivos do backup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Planilhas que vão para o Telegram toda segunda.\nreturn [{ json: { arquivo: 'contatos.csv' } }, { json: { arquivo: 'diagnosticos.csv' } }];"
+      }
+    },
+    {
+      "id": "9f0e6b29-8f6b-4143-9d4b-6d56693376a0",
+      "name": "Baixar planilha",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        -200
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "parameters": {
+        "url": "={{ $('Configuração').first().json.apiUrl }}/api/admin/export/{{ $json.arquivo }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "timeout": 90000
+        }
+      }
+    },
+    {
+      "id": "adfd34ea-5c40-40d7-8b3e-3a993f2506ef",
+      "name": "Nomear backup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Põe a data no nome do arquivo e monta a legenda.\nconst cfg = $('Configuração').first().json;\nconst hoje = DateTime.now().setZone(cfg.fuso);\nconst nomes = { 'contatos.csv': 'Contatos', 'diagnosticos.csv': 'Diagnósticos' };\nreturn $input.all().map((item, i) => {\n  const original = $('Arquivos do backup').all()[i]?.json.arquivo || 'backup.csv';\n  const binary = { data: { ...item.binary.data, fileName: original.replace('.csv', `-${hoje.toFormat('yyyy-MM-dd')}.csv`) } };\n  return {\n    json: { legenda: `🗄️ Backup semanal — ${nomes[original] || original} (${hoje.toFormat('dd/MM/yyyy')})` },\n    binary,\n    pairedItem: { item: i },\n  };\n});"
+      }
+    },
+    {
+      "id": "2d3dafca-05a8-4fbb-9586-afbf391aff51",
+      "name": "Enviar backup no Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        -200
+      ],
+      "webhookId": "6517599a-d2c1-4a64-8dc9-ac0ee88c4dfe",
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Configuração').first().json.chatId }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "={{ $json.legenda }}"
+        }
       }
     }
   ],
@@ -355,25 +490,7 @@
       "main": [
         [
           {
-            "node": "É o resumo diário?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "É o resumo diário?": {
-      "main": [
-        [
-          {
-            "node": "Buscar resumo",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Buscar contatos",
+            "node": "Qual tarefa?",
             "type": "main",
             "index": 0
           }
@@ -466,6 +583,75 @@
         [
           {
             "node": "Enviar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qual tarefa?": {
+      "main": [
+        [
+          {
+            "node": "Buscar resumo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Arquivos do backup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar contatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup toda segunda": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Arquivos do backup": {
+      "main": [
+        [
+          {
+            "node": "Baixar planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar planilha": {
+      "main": [
+        [
+          {
+            "node": "Nomear backup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nomear backup": {
+      "main": [
+        [
+          {
+            "node": "Enviar backup no Telegram",
             "type": "main",
             "index": 0
           }

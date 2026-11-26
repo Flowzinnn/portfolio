@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useEffect, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, CircleCheck, LoaderCircle, Send } from 'lucide-react'
@@ -202,7 +203,12 @@ export function Contact() {
                     {c.form.error}
                   </p>
                 )}
-                <p className="text-xs text-muted">{c.form.privacy}</p>
+                <p className="text-xs text-muted">
+                  {c.form.privacy}{' '}
+                  <Link to="/privacidade" className="underline underline-offset-2 hover:text-fg">
+                    {ui.footer.privacyPolicy}
+                  </Link>
+                </p>
               </motion.form>
             )}
           </AnimatePresence>

@@ -13,6 +13,7 @@ import BlogIndex from './pages/BlogIndex'
 import BlogPost from './pages/BlogPost'
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
+import Privacy from './pages/Privacy'
 import SegmentPage from './pages/SegmentPage'
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
               <Route path="/ia-para/:slug" element={<SegmentPage />} />
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/privacidade" element={<Privacy />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

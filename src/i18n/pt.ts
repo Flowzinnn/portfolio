@@ -6,6 +6,7 @@ export const pt = {
     title: 'Wolf Solutions — IA aplicada ao seu negócio',
     blog: 'Blog — Wolf Solutions',
     notFound: 'Página não encontrada — Wolf Solutions',
+    privacy: 'Política de privacidade — Wolf Solutions',
     segment: (name: string) => `IA para ${name.toLowerCase()} — Wolf Solutions`,
   },
   skip: 'Pular para o conteúdo',
@@ -227,6 +228,8 @@ export const pt = {
   footer: {
     rights: 'Todos os direitos reservados.',
     top: 'Topo',
+    privacy: 'Privacidade',
+    privacyPolicy: 'Política de privacidade',
   },
 
   notFound: {

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Check, CircleCheck, Download, LoaderCircle, MessageSquareText, RotateCcw } from 'lucide-react'
@@ -320,7 +321,12 @@ export function Quiz() {
                         {q.restart}
                       </button>
                     </div>
-                    <p className="no-print mt-4 text-xs leading-relaxed text-muted">{q.privacy}</p>
+                    <p className="no-print mt-4 text-xs leading-relaxed text-muted">
+                      {q.privacy}{' '}
+                      <Link to="/privacidade" className="underline underline-offset-2 hover:text-fg">
+                        {ui.footer.privacyPolicy}
+                      </Link>
+                    </p>
                   </motion.div>
                 )
               )}

@@ -6,6 +6,7 @@ export const en: Copy = {
     title: 'Wolf Solutions — AI applied to your business',
     blog: 'Blog — Wolf Solutions',
     notFound: 'Page not found — Wolf Solutions',
+    privacy: 'Privacy policy — Wolf Solutions',
     segment: (name: string) => `AI for ${name.toLowerCase()} — Wolf Solutions`,
   },
   skip: 'Skip to content',
@@ -221,6 +222,8 @@ export const en: Copy = {
   footer: {
     rights: 'All rights reserved.',
     top: 'Top',
+    privacy: 'Privacy',
+    privacyPolicy: 'Privacy policy',
   },
 
   notFound: {
