@@ -1,0 +1,23 @@
+# n8n no seu PC: recebe os contatos do site e te avisa no Telegram.
+# Subir:   docker compose up -d      (nesta pasta)
+# Abrir:   http://localhost:5678
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped        # volta sozinho quando o PC reinicia
+    ports:
+      - "127.0.0.1:5678:5678"      # só o seu PC acessa o painel do n8n
+    environment:
+      - GENERIC_TIMEZONE=America/Cuiaba
+      - TZ=America/Cuiaba
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_RUNNERS_ENABLED=true
+      # apaga execuções antigas (a cada 2 min gera muitas)
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+    volumes:
+      - n8n_data:/home/node/.n8n   # fluxos, credenciais e memória ficam aqui
+
+volumes:
+  n8n_data:

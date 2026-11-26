@@ -1,0 +1,344 @@
+{
+  "name": "Wolf Solutions — Contatos e monitor do site",
+  "nodes": [
+    {
+      "id": "584e11e8-dfab-4275-bd79-47ffc51bf96b",
+      "name": "A cada 2 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "965cc606-5c0e-4ba6-be29-b2a98d275804",
+      "name": "Todo dia às 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        220
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10d89f79-8784-420e-bf4c-7092202f533c",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        100
+      ],
+      "notes": "Edite aqui: endereço da API no Render, endereço do site no Netlify e o seu chat_id do Telegram.",
+      "notesInFlow": true,
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e6f8a669-398c-4ccb-abb5-ebcb4b4fae4b",
+              "name": "apiUrl",
+              "value": "https://wolf-solutions-api.onrender.com",
+              "type": "string"
+            },
+            {
+              "id": "2176d8fe-f0b4-4edb-a4b0-ee052c66372a",
+              "name": "siteUrl",
+              "value": "https://SEU-SITE.netlify.app",
+              "type": "string"
+            },
+            {
+              "id": "d2ecbed0-4357-4d7f-b105-c3fbefa73132",
+              "name": "chatId",
+              "value": "SEU_CHAT_ID",
+              "type": "string"
+            },
+            {
+              "id": "afcae90e-6bf4-40dd-bc11-d4a2cd8e7038",
+              "name": "fuso",
+              "value": "America/Cuiaba",
+              "type": "string"
+            },
+            {
+              "id": "3be0b039-6d21-4c9a-bfda-ef42a3da3122",
+              "name": "falhasParaAlerta",
+              "value": 3,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "663b03d1-5990-4c91-b583-037389e10b33",
+      "name": "É o resumo diário?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "86637f33-8763-4302-b3c4-63eb772981b6",
+              "leftValue": "={{ $('Todo dia às 8h').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c8dba04c-7af3-4323-b755-20c7c8ecedd5",
+      "name": "Buscar contatos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        200
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "notes": "Credencial: Header Auth → Name: Authorization / Value: Bearer SUA_SENHA_DO_ADMIN",
+      "notesInFlow": true,
+      "parameters": {
+        "url": "={{ $('Configuração').first().json.apiUrl }}/api/admin/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      }
+    },
+    {
+      "id": "d705a90b-ba53-4a90-9a81-9e5a41c70534",
+      "name": "Processar contatos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Recebe a resposta da API (lista de contatos) ou o erro da chamada.\n// Guarda o último contato avisado e conta falhas seguidas na memória do fluxo.\nconst state = $getWorkflowStaticData('global');\nconst cfg = $('Configuração').first().json;\nconst r = $input.first().json;\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst out = [];\n\nconst ok = r.statusCode === 200 && Array.isArray(r.body);\n\nif (!ok) {\n  // Falha: timeout, API fora, senha errada (401), erro 500...\n  const detalhe = r.error?.message || r.error || (r.statusCode ? `HTTP ${r.statusCode}: ${JSON.stringify(r.body).slice(0, 200)}` : 'sem detalhes');\n  state.failures = (state.failures || 0) + 1;\n  if (state.failures >= cfg.falhasParaAlerta && !state.apiDown) {\n    state.apiDown = true;\n    out.push({ json: { text: `🚨 <b>Site/API com problema</b>\\n${state.failures} verificações seguidas falharam.\\n\\n<code>${esc(String(detalhe).slice(0, 300))}</code>\\n\\nPainel: ${esc(cfg.siteUrl)}/admin` } });\n  }\n  return out;\n}\n\nif (state.apiDown) {\n  out.push({ json: { text: `✅ <b>API voltou</b>\\nRespondendo normalmente depois de ${state.failures} verificações com falha.` } });\n}\nstate.failures = 0;\nstate.apiDown = false;\n\nconst contatos = r.body.filter((c) => c && typeof c.id === 'number');\nconst maxId = contatos.reduce((m, c) => Math.max(m, c.id), 0);\n\n// Primeira execução: só marca onde parou, sem avisar contatos antigos.\nif (state.lastId === undefined) {\n  state.lastId = maxId;\n  out.push({ json: { text: `🐺 <b>Monitor da Wolf Solutions ligado</b>\\nVou te avisar aqui a cada contato novo do site.\\nContatos já existentes: ${contatos.length}.` } });\n  return out;\n}\n// Banco foi zerado (ids recomeçaram): volta o marcador.\nif (maxId < state.lastId) state.lastId = 0;\n\nconst origem = { quiz: 'Diagnóstico de IA', form: 'Formulário de contato' };\nconst novos = contatos.filter((c) => c.id > state.lastId).sort((a, b) => a.id - b.id);\n\nfor (const c of novos) {\n  const quando = DateTime.fromISO(c.created_at).setZone(cfg.fuso).toFormat('dd/MM HH:mm');\n  const linhas = [\n    `🔔 <b>Novo contato no site</b> (${esc(origem[c.source] || c.source)})`,\n    '',\n    `👤 <b>${esc(c.name)}</b>${c.company ? ` — ${esc(c.company)}` : ''}`,\n  ];\n  if (c.whatsapp) {\n    let num = String(c.whatsapp).replace(/\\D/g, '');\n    if (num.length <= 11) num = '55' + num;\n    linhas.push(`📱 WhatsApp: <a href=\"https://wa.me/${num}\">${esc(c.whatsapp)}</a>`);\n  }\n  if (c.email) linhas.push(`✉️ ${esc(c.email)}`);\n  if (c.message) {\n    const msg = String(c.message);\n    linhas.push('', `💬 ${esc(msg.length > 700 ? msg.slice(0, 700) + '…' : msg)}`);\n  }\n  linhas.push('', `🕒 ${quando} · #${c.id} · <a href=\"${esc(cfg.siteUrl)}/admin\">abrir painel</a>`);\n  out.push({ json: { text: linhas.join('\\n') } });\n}\n\nstate.lastId = Math.max(state.lastId, maxId);\nreturn out;\n"
+      }
+    },
+    {
+      "id": "0a259380-9881-4139-a852-8fdee8ea18f2",
+      "name": "Buscar resumo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "parameters": {
+        "url": "={{ $('Configuração').first().json.apiUrl }}/api/admin/summary",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 90000
+        }
+      }
+    },
+    {
+      "id": "20e4db04-d694-4efd-a87e-6342aa81bf82",
+      "name": "Montar resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Monta o resumo diário a partir de /api/admin/summary.\nconst cfg = $('Configuração').first().json;\nconst s = $input.first().json;\nconst esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst top = (obj) =>\n  Object.entries(obj || {})\n    .slice(0, 3)\n    .map(([k, v]) => `${esc(k)} (${v})`)\n    .join(', ') || '—';\n\nconst text = [\n  '☀️ <b>Bom dia! Resumo do site</b>',\n  '',\n  `📥 Contatos: <b>${s.total_contacts}</b> no total — <b>${s.new_contacts}</b> ainda como \"novo\"`,\n  `🧭 Diagnósticos: <b>${s.quiz_last_7_days}</b> nos últimos 7 dias (${s.total_quiz} no total)`,\n  `🏷️ Ramos que mais aparecem: ${top(s.by_sector)}`,\n  '',\n  `Painel: ${esc(cfg.siteUrl)}/admin`,\n].join('\\n');\n\nreturn [{ json: { text } }];\n"
+      }
+    },
+    {
+      "id": "f04479e1-3d7f-4932-9c2b-b4bdda8594ee",
+      "name": "Enviar no Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        100
+      ],
+      "webhookId": "a05d5000-103f-4ae1-b8a7-e8b02a930aba",
+      "parameters": {
+        "chatId": "={{ $('Configuração').first().json.chatId }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "A cada 2 minutos": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Todo dia às 8h": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "É o resumo diário?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É o resumo diário?": {
+      "main": [
+        [
+          {
+            "node": "Buscar resumo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar contatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar contatos": {
+      "main": [
+        [
+          {
+            "node": "Processar contatos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Processar contatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar contatos": {
+      "main": [
+        [
+          {
+            "node": "Enviar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar resumo": {
+      "main": [
+        [
+          {
+            "node": "Montar resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar resumo": {
+      "main": [
+        [
+          {
+            "node": "Enviar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Cuiaba",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true
+  },
+  "pinData": {}
+}
