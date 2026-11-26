@@ -67,7 +67,7 @@ Abra http://localhost:5678 e crie a conta de dono do n8n (fica só no seu PC).
    - `apiUrl` → endereço da API no Render (ex.: `https://wolf-solutions-api.onrender.com`)
    - `siteUrl` → endereço do site no Netlify (ex.: `https://wolfsolutions.netlify.app`)
    - `chatId` → o número do @userinfobot
-   - `emailRemetente` / `assinatura` → já vêm com `trabalho.nicolaswolf@gmail.com` / `Nicolas Wolf`
+   - `emailRemetente` → já vem com `trabalho.nicolaswolf@gmail.com`
 3. Nos nós **Buscar contatos** e **Buscar resumo**, em *Credential*, crie uma **Header Auth**:
    - Name: `Authorization`
    - Value: `Bearer SUA_SENHA_DO_ADMIN` (a mesma `ADMIN_PASSWORD` do Render, com a palavra
